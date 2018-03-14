@@ -24,8 +24,8 @@ type EtymologyEntryValue struct {
 // A DictionaryEntryValue contains the common attributes of a dictionary entry
 // of a word
 type DictionaryEntryValue struct {
-	PronounciationVal string
-	SenseVals         []SenseValue
+	PronunciationVal string
+	SenseVals        []SenseValue
 }
 
 // A ThesaurusEntryValue contains the common attributes of a thesaurus entry
@@ -72,9 +72,9 @@ func (e EtymologyEntryValue) Etymologies() []string {
 	return e.EtymologyVals
 }
 
-// Pronounciation returns the entry's pronounciation representation
-func (e DictionaryEntryValue) Pronounciation() string {
-	return e.PronounciationVal
+// Pronunciation returns the entry's pronunciation representation
+func (e DictionaryEntryValue) Pronunciation() string {
+	return e.PronunciationVal
 }
 
 // Senses returns the entry's senses

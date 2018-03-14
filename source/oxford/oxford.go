@@ -264,7 +264,7 @@ func (r apiResult) toResult() source.Result {
 		for _, pronunciation := range lexicalEntry.Pronunciations {
 			// TODO: Make a constant
 			if strings.EqualFold("IPA", pronunciation.PhoneticNotation) {
-				entry.PronounciationVal = pronunciation.PhoneticSpelling
+				entry.PronunciationVal = pronunciation.PhoneticSpelling
 			}
 		}
 

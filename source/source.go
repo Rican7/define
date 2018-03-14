@@ -43,7 +43,7 @@ type EtymologyEntry interface {
 
 // DictionaryEntry defines an interface for a dictionary entry of a word
 type DictionaryEntry interface {
-	Pronounciation() string
+	Pronunciation() string
 	Senses() []Sense
 }
 

@@ -39,7 +39,7 @@ func printResult(result source.Result, out io.Writer) {
 
 	for _, entry := range result.Entries() {
 		// TODO
-		writer.WriteStringLine(entry.Pronounciation())
+		writer.WriteStringLine(entry.Pronunciation())
 
 		for _, sense := range entry.Senses() {
 			for _, definition := range sense.Definitions() {
