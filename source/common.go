@@ -59,6 +59,8 @@ func (r ResultValue) Entries() []DictionaryEntry {
 	for i, entry := range r.EntryVals {
 		if dictionaryEntry, ok := entry.(DictionaryEntry); ok {
 			entries[i] = dictionaryEntry
+		} else {
+			panic("Invalid type in set")
 		}
 	}
 
