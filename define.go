@@ -4,10 +4,11 @@
 package main
 
 import (
-	"fmt"
+	"io"
 	"net/http"
 	"os"
 
+	defineio "github.com/Rican7/define/io"
 	"github.com/Rican7/define/source"
 	"github.com/Rican7/define/source/glosbe"
 )
@@ -25,21 +26,32 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(result.Headword())
-	fmt.Println()
+	printResult(result, os.Stdout)
+}
+
+func printResult(result source.Result, out io.Writer) {
+	writer := defineio.PanicWriter{out}
+
+	writer.WriteStringLine(result.Headword())
+	writer.WriteNewLine()
+
+	writer.FWriteln(len(result.Entries()))
 
 	for _, entry := range result.Entries() {
+		// TODO
+		writer.WriteStringLine(entry.Pronounciation())
+
 		for _, sense := range entry.Senses() {
 			for _, definition := range sense.Definitions() {
-				fmt.Println(definition)
+				writer.WriteStringLine(definition)
 			}
 		}
 
 		if thesaurusEntry, ok := entry.(source.ThesaurusEntry); ok {
-			fmt.Println()
+			writer.WriteNewLine()
 
 			for _, synonym := range thesaurusEntry.Synonyms() {
-				fmt.Println(synonym)
+				writer.WriteStringLine(synonym)
 			}
 		}
 	}
