@@ -193,6 +193,7 @@ type apiResult struct {
 
 // oxfordEntry is a struct that contains the entry types for this API
 type oxfordEntry struct {
+	source.WordEntryValue
 	source.DictionaryEntryValue
 	source.EtymologyEntryValue
 }
@@ -267,6 +268,9 @@ func (r apiResult) toResult() source.Result {
 				entry.PronunciationVal = pronunciation.PhoneticSpelling
 			}
 		}
+
+		entry.WordVal = lexicalEntry.Text
+		entry.CategoryVal = lexicalEntry.LexicalCategory
 
 		for _, subEntry := range lexicalEntry.Entries {
 			entry.EtymologyVals = append(entry.EtymologyVals, subEntry.Etymologies...)

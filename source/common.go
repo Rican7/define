@@ -15,10 +15,10 @@ type EntryValue struct {
 	ThesaurusEntryValue
 }
 
-// An EtymologyEntryValue contains the common attributes of an etymological
-// entry of a word
-type EtymologyEntryValue struct {
-	EtymologyVals []string
+// A WordEntryValue is a specific word entry representation
+type WordEntryValue struct {
+	WordVal     string
+	CategoryVal string
 }
 
 // A DictionaryEntryValue contains the common attributes of a dictionary entry
@@ -26,6 +26,12 @@ type EtymologyEntryValue struct {
 type DictionaryEntryValue struct {
 	PronunciationVal string
 	SenseVals        []SenseValue
+}
+
+// An EtymologyEntryValue contains the common attributes of an etymological
+// entry of a word
+type EtymologyEntryValue struct {
+	EtymologyVals []string
 }
 
 // A ThesaurusEntryValue contains the common attributes of a thesaurus entry
@@ -67,9 +73,14 @@ func (r ResultValue) Entries() []DictionaryEntry {
 	return entries
 }
 
-// Etymologies returns the entry's etymology strings
-func (e EtymologyEntryValue) Etymologies() []string {
-	return e.EtymologyVals
+// Word returns the entry's word
+func (e WordEntryValue) Word() string {
+	return e.WordVal
+}
+
+// Category returns the entry's lexical category
+func (e WordEntryValue) Category() string {
+	return e.CategoryVal
 }
 
 // Pronunciation returns the entry's pronunciation representation
@@ -86,6 +97,11 @@ func (e DictionaryEntryValue) Senses() []Sense {
 	}
 
 	return meanings
+}
+
+// Etymologies returns the entry's etymology strings
+func (e EtymologyEntryValue) Etymologies() []string {
+	return e.EtymologyVals
 }
 
 // Synonyms returns the entry's synonyms

@@ -17,6 +17,7 @@ type Result interface {
 
 // Entry defines a composite interface for the complete account of a word
 type Entry interface {
+	WordEntry
 	DictionaryEntry
 	EtymologyEntry
 	ThesaurusEntry
@@ -36,15 +37,21 @@ type VersatileDictionaryEntry interface {
 	ThesaurusEntry
 }
 
-// EtymologyEntry defines an interface for an etymological entry of a word
-type EtymologyEntry interface {
-	Etymologies() []string
+// WordEntry defines an interface for an entry of a specific word
+type WordEntry interface {
+	Word() string
+	Category() string
 }
 
 // DictionaryEntry defines an interface for a dictionary entry of a word
 type DictionaryEntry interface {
 	Pronunciation() string
 	Senses() []Sense
+}
+
+// EtymologyEntry defines an interface for an etymological entry of a word
+type EtymologyEntry interface {
+	Etymologies() []string
 }
 
 // ThesaurusEntry defines an interface for a thesaurus entry of a word
