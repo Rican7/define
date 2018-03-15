@@ -252,12 +252,16 @@ func (g *api) Define(word string) (source.Result, error) {
 	var result apiResult
 	err = json.Unmarshal(body, &result)
 
+	if len(result.Results) < 1 {
+		return nil, &source.EmptyResultError{}
+	}
+
 	return result.toResult(), err
 }
 
 // toResult converts the proprietary API result to a generic source.Result
 func (r apiResult) toResult() source.Result {
-	mainResult := r.Results[0] // TODO: Handle empty results as an error in the `Define` method
+	mainResult := r.Results[0]
 
 	entries := make([]interface{}, len(mainResult.LexicalEntries))
 

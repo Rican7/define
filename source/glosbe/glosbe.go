@@ -93,6 +93,10 @@ func (g *api) Define(word string) (source.Result, error) {
 	var result apiResult
 	err = json.Unmarshal(body, &result)
 
+	if len(result.TUC) < 1 {
+		return nil, &source.EmptyResultError{}
+	}
+
 	return result.toResult(), err
 }
 

@@ -150,6 +150,10 @@ func (g *api) Define(word string) (source.Result, error) {
 	var result apiResult
 	err = xml.Unmarshal(body, &result)
 
+	if len(result.Entries) < 1 {
+		return nil, &source.EmptyResultError{}
+	}
+
 	return result.toResult(), err
 }
 
@@ -327,7 +331,7 @@ func (dt *definingText) UnmarshalXML(d *xml.Decoder, start xml.StartElement) err
 
 // toResult converts the proprietary API result to a generic source.Result
 func (r apiResult) toResult() source.Result {
-	mainEntry := r.Entries[0] // TODO: Handle empty entries as an error in the `Define` method
+	mainEntry := r.Entries[0]
 	mainWord := mainEntry.Word
 
 	entries := make([]interface{}, 0)
