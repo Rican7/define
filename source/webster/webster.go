@@ -5,6 +5,7 @@ package webster
 
 import (
 	"encoding/xml"
+	"html"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -64,7 +65,7 @@ type apiDefinitionContainer struct {
 		DefiningText string `xml:",chardata"`
 	} `xml:"dt"`
 
-	Senses []apiSense // TODO make this private
+	senses []apiSense
 }
 
 // apiSense is a struct that defines the data structure for Oxford API senses
@@ -169,7 +170,8 @@ func (r *apiResult) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	for _, entry := range r.Entries {
 		for i, etymology := range entry.Etymologies {
 			// Clean the strings
-			etymology.Etymology = strCleaner.Replace(etymology.Raw)
+			etymology.Etymology = html.UnescapeString(etymology.Raw)
+			etymology.Etymology = strCleaner.Replace(etymology.Etymology)
 
 			// Store the modified value
 			entry.Etymologies[i] = etymology
@@ -263,9 +265,9 @@ func (s *apiDefinitionContainer) UnmarshalXML(d *xml.Decoder, start xml.StartEle
 		}
 	}
 
-	s.Senses = make([]apiSense, len(senses))
+	s.senses = make([]apiSense, len(senses))
 	for i, sense := range senses {
-		s.Senses[i] = *sense
+		s.senses[i] = *sense
 	}
 
 	return err
@@ -300,7 +302,8 @@ func (dt *definingText) UnmarshalXML(d *xml.Decoder, start xml.StartElement) err
 	)
 
 	// Clean our raw string
-	dt.cleaned = strCleaner.Replace(dt.Raw)
+	dt.cleaned = html.UnescapeString(dt.Raw)
+	dt.cleaned = strCleaner.Replace(dt.cleaned)
 	dt.cleaned = strings.TrimSpace(dt.cleaned)
 	dt.cleaned = strings.TrimLeft(dt.cleaned, definingTextPrefix)
 
@@ -348,7 +351,7 @@ func (r apiResult) toResult() source.Result {
 		if len(apiEntry.DefinitionContainers) > 0 {
 			def := apiEntry.DefinitionContainers[0]
 
-			for _, sense := range def.Senses {
+			for _, sense := range def.senses {
 				senseVal := sense.toSenseValue()
 
 				// Only go one level deep of sub-senses
