@@ -21,7 +21,9 @@ func main() {
 		word = os.Args[1]
 	}
 
-	result, err := glosbe.New(http.Client{}).Define(word)
+	source := glosbe.New(http.Client{})
+
+	result, err := source.Define(word)
 
 	if nil != err {
 		errorAndQuit(err)
