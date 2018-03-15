@@ -66,6 +66,10 @@ func printResult(result source.Result, out io.Writer) {
 						for _, examples := range sense.Examples() {
 							writer.WriteStringLine(fmt.Sprintf("%q", examples))
 						}
+
+						for _, notes := range sense.Notes() {
+							writer.WriteStringLine(fmt.Sprintf("[%s]", notes))
+						}
 					})
 
 					writer.IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
@@ -85,11 +89,43 @@ func printResult(result source.Result, out io.Writer) {
 					})
 				}
 
-				if thesaurusEntry, ok := entry.(source.ThesaurusEntry); ok {
-					writer.WriteNewLine()
+				if etymologyEntry, ok := entry.(source.EtymologyEntry); ok {
+					if 0 < len(etymologyEntry.Etymologies()) {
+						writer.WriteNewLine()
+						writer.WriteStringLine("Origin")
+						writer.WriteNewLine()
 
-					for _, synonym := range thesaurusEntry.Synonyms() {
-						writer.WriteStringLine(synonym)
+						for _, etymology := range etymologyEntry.Etymologies() {
+							writer.WriteStringLine(etymology)
+						}
+
+						writer.WriteNewLine()
+					}
+				}
+
+				if thesaurusEntry, ok := entry.(source.ThesaurusEntry); ok {
+					if 0 < len(thesaurusEntry.Synonyms()) {
+						writer.WriteNewLine()
+						writer.WriteStringLine("Synonyms")
+						writer.WriteNewLine()
+
+						for _, synonym := range thesaurusEntry.Synonyms() {
+							writer.WriteStringLine(synonym)
+						}
+
+						writer.WriteNewLine()
+					}
+
+					if 0 < len(thesaurusEntry.Synonyms()) {
+						writer.WriteNewLine()
+						writer.WriteStringLine("Antonyms")
+						writer.WriteNewLine()
+
+						for _, antonym := range thesaurusEntry.Antonyms() {
+							writer.WriteStringLine(antonym)
+						}
+
+						writer.WriteNewLine()
 					}
 				}
 			})
