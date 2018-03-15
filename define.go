@@ -24,10 +24,20 @@ func main() {
 	result, err := glosbe.New(http.Client{}).Define(word)
 
 	if nil != err {
-		panic(err)
+		errorAndQuit(err)
 	}
 
 	printResult(result, os.Stdout)
+}
+
+func errorAndQuit(err error) {
+	writer := defineio.NewPanicWriter(os.Stderr)
+
+	writer.WriteNewLine()
+	writer.WriteStringLine(err.Error())
+	writer.WriteNewLine()
+
+	os.Exit(1) // TODO: Error codes?
 }
 
 func printResult(result source.Result, out io.Writer) {
