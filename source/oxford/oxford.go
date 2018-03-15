@@ -253,7 +253,7 @@ func (g *api) Define(word string) (source.Result, error) {
 	err = json.Unmarshal(body, &result)
 
 	if len(result.Results) < 1 {
-		return nil, &source.EmptyResultError{}
+		return nil, &source.EmptyResultError{word}
 	}
 
 	return result.toResult(), err
