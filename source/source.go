@@ -65,4 +65,6 @@ type Sense interface {
 	Definitions() []string
 	Examples() []string
 	Notes() []string
+
+	Subsenses() []Sense
 }

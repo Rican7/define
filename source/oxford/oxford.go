@@ -74,82 +74,7 @@ type apiResult struct {
 					PhoneticSpelling string
 					Regions          []string
 				}
-				Senses []struct {
-					CrossReferenceMarkers []string
-					CrossReferences       []struct {
-						ID   string
-						Text string
-						Type string
-					}
-					Definitions []string
-					Domains     []string
-					Examples    []struct {
-						Definitions []string
-						Domains     []string
-						Notes       []struct {
-							ID   string
-							Text string
-							Type string
-						}
-						Regions      []string
-						Registers    []string
-						SenseIds     []string
-						Text         string
-						Translations []struct {
-							Domains             []string
-							GrammaticalFeatures []struct {
-								Text string
-								Type string
-							}
-							Language string
-							Notes    []struct {
-								ID   string
-								Text string
-								Type string
-							}
-							Regions   []string
-							Registers []string
-							Text      string
-						}
-					}
-					ID    string
-					Notes []struct {
-						ID   string
-						Text string
-						Type string
-					}
-					Pronunciations []struct {
-						AudioFile        string
-						Dialects         []string
-						PhoneticNotation string
-						PhoneticSpelling string
-						Regions          []string
-					}
-					Regions   []string
-					Registers []string
-					Subsenses []struct {
-					}
-					Translations []struct {
-						Domains             []string
-						GrammaticalFeatures []struct {
-							Text string
-							Type string
-						}
-						Language string
-						Notes    []struct {
-							ID   string
-							Text string
-							Type string
-						}
-						Regions   []string
-						Registers []string
-						Text      string
-					}
-					VariantForms []struct {
-						Regions []string
-						Text    string
-					}
-				}
+				Senses       []apiSense
 				VariantForms []struct {
 					Regions []string
 					Text    string
@@ -188,6 +113,83 @@ type apiResult struct {
 		}
 		Type string
 		Word string
+	}
+}
+
+// apiSense is a struct that defines the data structure for Oxford API senses
+type apiSense struct {
+	CrossReferenceMarkers []string
+	CrossReferences       []struct {
+		ID   string
+		Text string
+		Type string
+	}
+	Definitions []string
+	Domains     []string
+	Examples    []struct {
+		Definitions []string
+		Domains     []string
+		Notes       []struct {
+			ID   string
+			Text string
+			Type string
+		}
+		Regions      []string
+		Registers    []string
+		SenseIds     []string
+		Text         string
+		Translations []struct {
+			Domains             []string
+			GrammaticalFeatures []struct {
+				Text string
+				Type string
+			}
+			Language string
+			Notes    []struct {
+				ID   string
+				Text string
+				Type string
+			}
+			Regions   []string
+			Registers []string
+			Text      string
+		}
+	}
+	ID    string
+	Notes []struct {
+		ID   string
+		Text string
+		Type string
+	}
+	Pronunciations []struct {
+		AudioFile        string
+		Dialects         []string
+		PhoneticNotation string
+		PhoneticSpelling string
+		Regions          []string
+	}
+	Regions      []string
+	Registers    []string
+	Subsenses    []apiSense
+	Translations []struct {
+		Domains             []string
+		GrammaticalFeatures []struct {
+			Text string
+			Type string
+		}
+		Language string
+		Notes    []struct {
+			ID   string
+			Text string
+			Type string
+		}
+		Regions   []string
+		Registers []string
+		Text      string
+	}
+	VariantForms []struct {
+		Regions []string
+		Text    string
 	}
 }
 
@@ -276,25 +278,14 @@ func (r apiResult) toResult() source.Result {
 			entry.EtymologyVals = append(entry.EtymologyVals, subEntry.Etymologies...)
 
 			for _, sense := range subEntry.Senses {
-				examples := make([]string, len(sense.Examples))
-				notes := make([]string, len(sense.Notes))
+				senseVal := sense.toSenseValue()
 
-				for i, example := range sense.Examples {
-					examples[i] = example.Text
+				// Only go one level deep of sub-senses
+				for _, subSense := range sense.Subsenses {
+					senseVal.SubsenseVals = append(senseVal.SubsenseVals, subSense.toSenseValue())
 				}
 
-				for i, note := range sense.Notes {
-					notes[i] = note.Text
-				}
-
-				entry.SenseVals = append(
-					entry.SenseVals,
-					source.SenseValue{
-						DefinitionVals: sense.Definitions,
-						ExampleVals:    examples,
-						NoteVals:       notes,
-					},
-				)
+				entry.SenseVals = append(entry.SenseVals, senseVal)
 			}
 		}
 
@@ -305,5 +296,25 @@ func (r apiResult) toResult() source.Result {
 		Head:      mainResult.Word,
 		Lang:      mainResult.Language,
 		EntryVals: entries,
+	}
+}
+
+// toSenseValue converts the proprietary API sense to a source.SenseValue
+func (s apiSense) toSenseValue() source.SenseValue {
+	examples := make([]string, len(s.Examples))
+	notes := make([]string, len(s.Notes))
+
+	for i, example := range s.Examples {
+		examples[i] = example.Text
+	}
+
+	for i, note := range s.Notes {
+		notes[i] = note.Text
+	}
+
+	return source.SenseValue{
+		DefinitionVals: s.Definitions,
+		ExampleVals:    examples,
+		NoteVals:       notes,
 	}
 }

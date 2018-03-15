@@ -61,6 +61,28 @@ func printResult(result source.Result, out io.Writer) {
 					for _, definition := range sense.Definitions() {
 						writer.WriteStringLine(prefix + definition)
 					}
+
+					writer.IndentWrites(len(prefix), func(writer *defineio.PanicWriter) {
+						for _, examples := range sense.Examples() {
+							writer.WriteStringLine(fmt.Sprintf("%q", examples))
+						}
+					})
+
+					writer.IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
+						for _, subSense := range sense.Subsenses() {
+							prefix := " - "
+
+							for _, definition := range subSense.Definitions() {
+								writer.WriteStringLine(prefix + definition)
+							}
+
+							writer.IndentWrites(len(prefix), func(writer *defineio.PanicWriter) {
+								if len(subSense.Examples()) > 0 {
+									writer.WriteStringLine(fmt.Sprintf("%q", subSense.Examples()[0]))
+								}
+							})
+						}
+					})
 				}
 
 				if thesaurusEntry, ok := entry.(source.ThesaurusEntry); ok {

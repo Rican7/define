@@ -46,6 +46,8 @@ type SenseValue struct {
 	DefinitionVals []string
 	ExampleVals    []string
 	NoteVals       []string
+
+	SubsenseVals []SenseValue
 }
 
 // Headword returns the result's headword
@@ -90,13 +92,13 @@ func (e DictionaryEntryValue) Pronunciation() string {
 
 // Senses returns the entry's senses
 func (e DictionaryEntryValue) Senses() []Sense {
-	meanings := make([]Sense, len(e.SenseVals))
+	senses := make([]Sense, len(e.SenseVals))
 
-	for i, meaning := range e.SenseVals {
-		meanings[i] = meaning
+	for i, sense := range e.SenseVals {
+		senses[i] = sense
 	}
 
-	return meanings
+	return senses
 }
 
 // Etymologies returns the entry's etymology strings
@@ -127,4 +129,15 @@ func (s SenseValue) Examples() []string {
 // Notes returns the sense's notes
 func (s SenseValue) Notes() []string {
 	return s.NoteVals
+}
+
+// Subsenses returns the sense's subsenses
+func (s SenseValue) Subsenses() []Sense {
+	senses := make([]Sense, len(s.SubsenseVals))
+
+	for i, sense := range s.SubsenseVals {
+		senses[i] = sense
+	}
+
+	return senses
 }
