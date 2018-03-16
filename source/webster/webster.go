@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -21,76 +22,143 @@ const (
 
 	entriesURLString = baseURLString + "references/collegiate/xml/"
 
+	httpRequestAcceptHeaderName     = "Accept"
+	httpRequestAppKeyQueryParamName = "key"
+
+	xmlMIMEType = "application/xml"
+
 	senseTagName        = "sn"
 	senseDividerTagName = "sd"
 	definingTextTagName = "dt"
 	calledAlsoTagName   = "ca"
 
-	definingTextPrefix = ":"
-	calledAlsoPrefix   = "- "
-	senseDividerPrefix = "; "
+	senseDividerPrefix       = "; "
+	definingTextPrefix       = ":"
+	exampleWrapCharacter     = "'"
+	authorPrefix             = "- "
+	crossReferenceJoinString = ", "
 )
 
 // apiURL is the URL instance used for Webster API calls
 var apiURL *url.URL
 
-// api is a struct containing a configured HTTP client for Webster API operations
+// stringCleaner is used to clean the strings returned from the API
+// TODO: Replace with an HTML entities cleaner?
+var stringCleaner *strings.Replacer
+
+// tagsToClean is a list of HTML tags (start and end) to clean/remove from the
+// strings returned from the API
+var tagsToClean = []string{
+	"<it>",
+	"</it>",
+	"<fw>",
+	"</fw>",
+	"<d_link>",
+	"</d_link>",
+	"<dx>",
+	"</dx>",
+	"<dxt>",
+	"</dxt>",
+	"<sx>",
+	"</sx>",
+	"<ca>",
+	"</ca>",
+	"<cat>",
+	"</cat>",
+	"<g>",
+	"</g>",
+	"<un>",
+	"</un>",
+	"<vi>",
+	"</vi>",
+	"<aq>",
+	"</aq>",
+	"<sxn>",
+	"</sxn>",
+	"<dxn>",
+	"</dxn>",
+}
+
+// etymologyMetaStripperRegex is a regular expression for stripping meta from
+// etymology entries
+var etymologyMetaStripperRegex = regexp.MustCompile("<ma>.*?</ma>")
+
+// api contains a configured HTTP client for Webster API operations
 type api struct {
 	httpClient *http.Client
 	appKey     string
 }
 
-// apiResult is a struct that defines the data structure for Webster API results
+// apiResult defines the data structure for Webster API results
 type apiResult struct {
 	Entries []struct {
-		ID              string `xml:"id,attr"`
-		Word            string `xml:"ew"`
-		Pronunciation   string `xml:"pr"`
-		LexicalCategory string `xml:"fl"`
-		Etymologies     []struct {
-			Raw       string `xml:",innerxml"`
-			Etymology string `xml:",chardata"`
-		} `xml:"et"`
+		ID                   string                   `xml:"id,attr"`
+		Word                 string                   `xml:"ew"`
+		Pronunciation        string                   `xml:"pr"`
+		LexicalCategory      string                   `xml:"fl"`
+		Etymologies          []cleanableString        `xml:"et"`
 		DefinitionContainers []apiDefinitionContainer `xml:"def"`
 	} `xml:"entry"`
 }
 
-// apiDefinitionContainer is a struct that defines the data structure for
-// Oxford API definitions
+// apiDefinitionContainer defines the data structure for Oxford API definitions
 type apiDefinitionContainer struct {
-	Raw           string `xml:",innerxml"`
-	Date          string `xml:"date"`
-	DefiningTexts []struct {
-		Raw          string `xml:",innerxml"`
-		DefiningText string `xml:",chardata"`
-	} `xml:"dt"`
+	Raw           string            `xml:",innerxml"`
+	Date          string            `xml:"date"`
+	DefiningTexts []cleanableString `xml:"dt"`
 
 	senses []apiSense
 }
 
-// apiSense is a struct that defines the data structure for Oxford API senses
+// apiDefiningText defines the data structure for defining texts
+type apiDefiningText struct {
+	Raw             string       `xml:",innerxml"`
+	Stripped        string       `xml:",chardata"`
+	CrossReferences []string     `xml:"sx"`
+	Examples        []apiExample `xml:"vi"`
+	UsageNotes      []struct {
+		Note     string       `xml:",chardata"`
+		Examples []apiExample `xml:"vi"`
+	} `xml:"un"`
+
+	cleaned   string
+	formatted string
+}
+
+// apiExample defines the data structure for examples
+type apiExample struct {
+	Raw      string `xml:",innerxml"`
+	Stripped string `xml:",chardata"`
+	Author   string `xml:"aq"`
+
+	cleaned   string
+	formatted string
+}
+
+// apiSense defines the data structure for Oxford API senses
 type apiSense struct {
 	Definitions []string
+	Examples    []string
+	Notes       []string
 
 	Subsenses []apiSense
 }
 
-// sensePosition is a struct that defines the data structure for sense positions
+// sensePosition defines the data structure for sense positions
 type sensePosition struct {
 	Position    string `xml:",chardata"`
 	SubPosition string `xml:"snp"`
 }
 
-// sensePosition is a struct that defines the data structure for defining texts
-type definingText struct {
-	Raw             string   `xml:",innerxml"`
-	DefiningText    string   `xml:",chardata"`
-	CrossReferences []string `xml:"sx"`
+// cleanableString defines the data structure for cleanable XML strings
+type cleanableString struct {
+	Raw      string `xml:",innerxml"`
+	Stripped string `xml:",chardata"`
 
 	cleaned string
 }
 
-// websterEntry is a struct that contains the entry types for this API
+// websterEntry contains the entry types for this API
 type websterEntry struct {
 	source.WordEntryValue
 	source.DictionaryEntryValue
@@ -106,6 +174,14 @@ func init() {
 	if nil != err {
 		panic(err)
 	}
+
+	stringCleanerPairs := make([]string, len(tagsToClean)*2)
+
+	for _, tag := range tagsToClean {
+		stringCleanerPairs = append(stringCleanerPairs, []string{tag, ""}...)
+	}
+
+	stringCleaner = strings.NewReplacer(stringCleanerPairs...)
 }
 
 // New returns a new Webster API dictionary source
@@ -118,7 +194,7 @@ func (g *api) Define(word string) (source.Result, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(entriesURLString + word)
 	queryParams := apiURL.Query()
-	queryParams.Set("key", g.appKey)
+	queryParams.Set(httpRequestAppKeyQueryParamName, g.appKey)
 	requestURL.RawQuery = queryParams.Encode()
 
 	if nil != err {
@@ -131,7 +207,7 @@ func (g *api) Define(word string) (source.Result, error) {
 		return nil, err
 	}
 
-	httpRequest.Header.Set("Accept", "application/xml")
+	httpRequest.Header.Set(httpRequestAcceptHeaderName, xmlMIMEType)
 
 	httpResponse, err := g.httpClient.Do(httpRequest)
 
@@ -162,34 +238,6 @@ func (g *api) Define(word string) (source.Result, error) {
 	}
 
 	return source.ValidateAndReturnResult(result.toResult())
-}
-
-// UnmarshalXML customizes the way we can unmarshal our API result value
-func (r *apiResult) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	// Alias our type so that we can unmarshal as usual
-	type result apiResult
-
-	// Unmarshal our wrapped value before cleaning
-	err := d.DecodeElement((*result)(r), &start)
-
-	// TODO: Replace with an HTML entities cleaner?
-	strCleaner := strings.NewReplacer(
-		"<it>", "",
-		"</it>", "",
-	)
-
-	for _, entry := range r.Entries {
-		for i, etymology := range entry.Etymologies {
-			// Clean the strings
-			etymology.Etymology = html.UnescapeString(etymology.Raw)
-			etymology.Etymology = strCleaner.Replace(etymology.Etymology)
-
-			// Store the modified value
-			entry.Etymologies[i] = etymology
-		}
-	}
-
-	return err
 }
 
 // UnmarshalXML customizes the way we can unmarshal our API definitions value
@@ -242,11 +290,11 @@ func (s *apiDefinitionContainer) UnmarshalXML(d *xml.Decoder, start xml.StartEle
 			case senseDividerTagName:
 				lastDefinitionIndex := len(currentSense.Definitions) - 1
 
-				dt := &definingText{}
-				err = subDecoder.DecodeElement(&dt, &t)
+				str := &cleanableString{}
+				err = subDecoder.DecodeElement(&str, &t)
 
 				currentSense.Definitions[lastDefinitionIndex] =
-					currentSense.Definitions[lastDefinitionIndex] + senseDividerPrefix + dt.cleaned
+					currentSense.Definitions[lastDefinitionIndex] + senseDividerPrefix + str.cleaned
 
 				isDefinitionContinuation = true
 			case definingTextTagName:
@@ -255,16 +303,26 @@ func (s *apiDefinitionContainer) UnmarshalXML(d *xml.Decoder, start xml.StartEle
 					senses = append(senses, currentSense)
 				}
 
-				dt := &definingText{}
+				dt := &apiDefiningText{}
 				err = subDecoder.DecodeElement(&dt, &t)
 
 				if !isDefinitionContinuation {
-					currentSense.Definitions = append(currentSense.Definitions, dt.cleaned)
+					currentSense.Definitions = append(currentSense.Definitions, dt.formatted)
+
+					currentSense.Examples = make([]string, len(dt.Examples))
+					for i, example := range dt.Examples {
+						currentSense.Examples[i] = example.formatted
+					}
+
+					currentSense.Notes = make([]string, len(dt.UsageNotes))
+					for i, note := range dt.UsageNotes {
+						currentSense.Notes[i] = note.Note
+					}
 				} else {
 					lastDefinitionIndex := len(currentSense.Definitions) - 1
 
 					currentSense.Definitions[lastDefinitionIndex] =
-						currentSense.Definitions[lastDefinitionIndex] + " " + dt.cleaned
+						currentSense.Definitions[lastDefinitionIndex] + " " + dt.formatted
 
 					isDefinitionContinuation = false
 				}
@@ -285,53 +343,141 @@ func (s *apiDefinitionContainer) UnmarshalXML(d *xml.Decoder, start xml.StartEle
 }
 
 // UnmarshalXML customizes the way we can unmarshal our API defining texts value
-func (dt *definingText) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (dt *apiDefiningText) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	// Alias our type so that we can unmarshal as usual
-	type defText definingText
+	type defText apiDefiningText
 
 	// Unmarshal our wrapped value before cleaning
 	err := d.DecodeElement((*defText)(dt), &start)
 
-	// TODO: Replace with an HTML entities cleaner?
-	strCleaner := strings.NewReplacer(
-		"<it>", "",
-		"</it>", "",
-		"<d_link>", "",
-		"</d_link>", "",
-		"<dx>", "",
-		"</dx>", "",
-		"<dxt>", "",
-		"</dxt>", "",
-		"<sx>", "",
-		"</sx>", "",
-		"<ca>", "",
-		"</ca>", "",
-		"<cat>", "",
-		"</cat>", "",
-		"<g>", "",
-		"</g>", "",
-	)
+	// Initialize our cleaned string
+	cleanStr := &cleanableString{}
+	xml.Unmarshal(wrapRawXML(dt.Raw), cleanStr)
+	dt.cleaned = cleanStr.cleaned
 
-	// Clean our raw string
-	dt.cleaned = html.UnescapeString(dt.Raw)
-	dt.cleaned = strCleaner.Replace(dt.cleaned)
-	dt.cleaned = strings.TrimSpace(dt.cleaned)
 	dt.cleaned = strings.TrimLeft(dt.cleaned, definingTextPrefix)
+
+	// Our formatted version will start as just the cleaned version
+	dt.formatted = dt.cleaned
 
 	// Clean our cross references
 	for i, crossReference := range dt.CrossReferences {
-		crossReference = strCleaner.Replace(crossReference)
+		crossReference = stringCleaner.Replace(crossReference)
 		crossReference = strings.TrimSpace(crossReference)
 		crossReference = strings.TrimLeft(crossReference, definingTextPrefix)
 
 		dt.CrossReferences[i] = crossReference
 	}
 
-	// If our cleaned string only contains our cross references
-	if len(dt.CrossReferences) > 1 && strings.EqualFold(dt.cleaned, strings.Join(dt.CrossReferences, " ")) {
-		// Add commas, for readability
-		dt.cleaned = strings.Join(dt.CrossReferences, ", ")
+	for i, usageNote := range dt.UsageNotes {
+		// Grab our examples from our usage notes
+		dt.Examples = append(dt.Examples, usageNote.Examples...)
+
+		// Clean our note
+		dt.UsageNotes[i].Note = strings.TrimSpace(usageNote.Note)
 	}
+
+	// If we only have a single usage note, and the defining text starts with it
+	if len(dt.UsageNotes) == 1 && strings.HasPrefix(dt.cleaned, dt.UsageNotes[0].Note) {
+		// Functionally replace the defining text with the note
+		dt.formatted = dt.UsageNotes[0].Note
+
+		// Remove the note, since it would then be redundant
+		dt.UsageNotes = dt.UsageNotes[:0]
+	} else {
+		for _, usageNote := range dt.UsageNotes {
+			if strings.Contains(dt.formatted, usageNote.Note) {
+				parts := strings.SplitN(dt.formatted, usageNote.Note, 2)
+
+				// Get our start and end pieces
+				strStart := strings.TrimSpace(parts[0])
+				strEnd := strings.TrimSpace(parts[1])
+
+				dt.formatted = strStart + strEnd
+			}
+		}
+	}
+
+	for _, example := range dt.Examples {
+		if strings.Contains(dt.formatted, example.cleaned) {
+			parts := strings.SplitN(dt.formatted, example.cleaned, 2)
+
+			// Get our start and end pieces
+			strStart := strings.TrimSpace(parts[0])
+			strEnd := strings.TrimSpace(parts[1])
+
+			dt.formatted = strStart + strEnd
+		}
+	}
+
+	// If our cleaned string only contains our cross references
+	if len(dt.CrossReferences) > 1 && strings.EqualFold(dt.formatted, strings.Join(dt.CrossReferences, " ")) {
+		// Add commas, for readability
+		dt.formatted = strings.Join(dt.CrossReferences, crossReferenceJoinString)
+	}
+
+	return err
+}
+
+// UnmarshalXML customizes the way we can unmarshal our API example value
+func (e *apiExample) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	// Alias our type so that we can unmarshal as usual
+	type example apiExample
+
+	// Unmarshal our wrapped value before cleaning
+	err := d.DecodeElement((*example)(e), &start)
+
+	// Initialize our cleaned string
+	cleanStr := &cleanableString{}
+	xml.Unmarshal(wrapRawXML(e.Raw), cleanStr)
+	e.cleaned = cleanStr.cleaned
+
+	// Our formatted version will start as just the cleaned version
+	e.formatted = e.cleaned
+
+	// Clean our author string
+	e.Author = strings.TrimSpace(e.Author)
+
+	// If we have an author
+	if "" != e.Author {
+		// If the author is in the string, strip it from the original string,
+		// so that we can properly append it
+		if strings.Contains(e.cleaned, e.Author) {
+			parts := strings.SplitN(e.cleaned, e.Author, 2)
+
+			// Get our start and end pieces
+			strStart := strings.TrimSpace(parts[0])
+			strEnd := strings.TrimSpace(parts[1])
+
+			// If we have an ending string, pad it
+			if 0 < len(strEnd) {
+				strEnd = " " + strEnd
+			}
+
+			e.formatted = exampleWrapCharacter + strStart + exampleWrapCharacter + " " + authorPrefix + e.Author + strEnd
+		} else {
+			e.formatted = exampleWrapCharacter + e.cleaned + exampleWrapCharacter + " " + authorPrefix + e.Author
+		}
+	}
+
+	return err
+}
+
+// UnmarshalXML customizes the way we can unmarshal cleanable strings
+func (s *cleanableString) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	// Alias our type so that we can unmarshal as usual
+	type str cleanableString
+
+	// Unmarshal our wrapped value before cleaning
+	err := d.DecodeElement((*str)(s), &start)
+
+	// Initialize our clean string
+	s.cleaned = s.Raw
+
+	// Clean our raw string
+	s.cleaned = html.UnescapeString(s.cleaned)
+	s.cleaned = stringCleaner.Replace(s.cleaned)
+	s.cleaned = strings.TrimSpace(s.cleaned)
 
 	return err
 }
@@ -356,7 +502,9 @@ func (r apiResult) toResult() source.Result {
 
 		entry.EtymologyVals = make([]string, len(apiEntry.Etymologies))
 		for i, etymology := range apiEntry.Etymologies {
-			entry.EtymologyVals[i] = etymology.Etymology
+			etymology.cleaned = etymologyMetaStripperRegex.ReplaceAllString(etymology.cleaned, "")
+
+			entry.EtymologyVals[i] = strings.TrimSpace(etymology.cleaned)
 		}
 
 		if len(apiEntry.DefinitionContainers) > 0 {
@@ -388,5 +536,12 @@ func (r apiResult) toResult() source.Result {
 func (s apiSense) toSenseValue() source.SenseValue {
 	return source.SenseValue{
 		DefinitionVals: s.Definitions,
+		ExampleVals:    s.Examples,
+		NoteVals:       s.Notes,
 	}
+}
+
+// wrapRawXML wraps a raw XML string in arbitrary container elements
+func wrapRawXML(raw string) []byte {
+	return []byte("<x>" + raw + "</x>")
 }
