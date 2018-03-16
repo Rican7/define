@@ -23,7 +23,28 @@ type InvalidResponseError struct {
 	httpResponse http.Response
 }
 
-// ValidateHTTPResponse valides an HTTP response and returns an error if the
+// ValidateResult validates the result and returns an error if invalid
+func ValidateResult(result Result) error {
+	if nil == result {
+		return &EmptyResultError{}
+	} else if len(result.Entries()) < 1 || "" == result.Headword() {
+		return &EmptyResultError{result.Headword()}
+	}
+
+	return nil
+}
+
+// ValidateAndReturnResult validates the result and returns the result and a nil
+// error if valid. If invalid, it'll return a nil result and an error.
+func ValidateAndReturnResult(result Result) (Result, error) {
+	if err := ValidateResult(result); nil != err {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// ValidateHTTPResponse validates an HTTP response and returns an error if the
 // response is invalid
 func ValidateHTTPResponse(httpResponse *http.Response, validStatusCodes ...int) error {
 	validStatusCodes = append(acceptableStatusCodes, validStatusCodes...)

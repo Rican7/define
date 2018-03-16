@@ -139,11 +139,11 @@ func (g *api) Define(word string) (source.Result, error) {
 		return nil, err
 	}
 
+	defer httpResponse.Body.Close()
+
 	if err = source.ValidateHTTPResponse(httpResponse); nil != err {
 		return nil, err
 	}
-
-	defer httpResponse.Body.Close()
 
 	body, err := ioutil.ReadAll(httpResponse.Body)
 
@@ -152,13 +152,16 @@ func (g *api) Define(word string) (source.Result, error) {
 	}
 
 	var result apiResult
-	err = xml.Unmarshal(body, &result)
+
+	if err = xml.Unmarshal(body, &result); nil != err {
+		return nil, err
+	}
 
 	if len(result.Entries) < 1 {
 		return nil, &source.EmptyResultError{word}
 	}
 
-	return result.toResult(), err
+	return source.ValidateAndReturnResult(result.toResult())
 }
 
 // UnmarshalXML customizes the way we can unmarshal our API result value

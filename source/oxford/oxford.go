@@ -241,11 +241,15 @@ func (g *api) Define(word string) (source.Result, error) {
 		return nil, err
 	}
 
-	if err = source.ValidateHTTPResponse(httpResponse); nil != err {
+	defer httpResponse.Body.Close()
+
+	if err = source.ValidateHTTPResponse(httpResponse, http.StatusOK, http.StatusNotFound); nil != err {
 		return nil, err
 	}
 
-	defer httpResponse.Body.Close()
+	if http.StatusNotFound == httpResponse.StatusCode {
+		return nil, &source.EmptyResultError{word}
+	}
 
 	body, err := ioutil.ReadAll(httpResponse.Body)
 
@@ -254,13 +258,16 @@ func (g *api) Define(word string) (source.Result, error) {
 	}
 
 	var result apiResult
-	err = json.Unmarshal(body, &result)
+
+	if err = json.Unmarshal(body, &result); nil != err {
+		return nil, err
+	}
 
 	if len(result.Results) < 1 {
 		return nil, &source.EmptyResultError{word}
 	}
 
-	return result.toResult(), err
+	return source.ValidateAndReturnResult(result.toResult())
 }
 
 // toResult converts the proprietary API result to a generic source.Result
