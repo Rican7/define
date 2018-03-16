@@ -18,6 +18,14 @@ const (
 	baseURLString = "https://od-api.oxforddictionaries.com/api/v1/"
 
 	entriesURLString = baseURLString + "entries/"
+
+	httpRequestAcceptHeaderName = "Accept"
+	httpRequestAppIDHeaderName  = "app_id"
+	httpRequestAppKeyHeaderName = "app_key"
+
+	jsonMIMEType = "application/json"
+
+	phoneticNotationIPAIdentifier = "IPA"
 )
 
 // apiURL is the URL instance used for Oxford API calls
@@ -231,9 +239,9 @@ func (g *api) Define(word string) (source.Result, error) {
 		return nil, err
 	}
 
-	httpRequest.Header.Set("Accept", "application/json")
-	httpRequest.Header.Set("app_id", g.appID)
-	httpRequest.Header.Set("app_key", g.appKey)
+	httpRequest.Header.Set(httpRequestAcceptHeaderName, jsonMIMEType)
+	httpRequest.Header.Set(httpRequestAppIDHeaderName, g.appID)
+	httpRequest.Header.Set(httpRequestAppKeyHeaderName, g.appKey)
 
 	httpResponse, err := g.httpClient.Do(httpRequest)
 
@@ -280,8 +288,7 @@ func (r apiResult) toResult() source.Result {
 		entry := oxfordEntry{}
 
 		for _, pronunciation := range lexicalEntry.Pronunciations {
-			// TODO: Make a constant
-			if strings.EqualFold("IPA", pronunciation.PhoneticNotation) {
+			if strings.EqualFold(phoneticNotationIPAIdentifier, pronunciation.PhoneticNotation) {
 				entry.PronunciationVal = pronunciation.PhoneticSpelling
 			}
 		}
