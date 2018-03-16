@@ -241,6 +241,10 @@ func (g *api) Define(word string) (source.Result, error) {
 		return nil, err
 	}
 
+	if err = source.ValidateHTTPResponse(httpResponse); nil != err {
+		return nil, err
+	}
+
 	defer httpResponse.Body.Close()
 
 	body, err := ioutil.ReadAll(httpResponse.Body)
