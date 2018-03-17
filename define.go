@@ -25,11 +25,17 @@ func main() {
 
 	result, err := src.Define(word)
 
-	if nil != err {
-		errorAndQuit(err)
-	}
+	handleError(err, source.ValidateResult(result))
 
 	printResult(result, os.Stdout)
+}
+
+func handleError(err ...error) {
+	for _, e := range err {
+		if nil != e {
+			errorAndQuit(e)
+		}
+	}
 }
 
 func errorAndQuit(err error) {
