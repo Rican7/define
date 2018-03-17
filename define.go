@@ -5,14 +5,17 @@ package main
 
 import (
 	"fmt"
-	"io"
+	"math"
 	"net/http"
 	"os"
+	"strings"
 
 	defineio "github.com/Rican7/define/io"
 	"github.com/Rican7/define/source"
 	"github.com/Rican7/define/source/glosbe"
 )
+
+var indentSize = 2
 
 func main() {
 	var word string
@@ -27,7 +30,10 @@ func main() {
 
 	handleError(err, source.ValidateResult(result))
 
-	printResult(result, os.Stdout)
+	stdOutWriter := defineio.NewPanicWriter(os.Stdout)
+
+	printResult(result, stdOutWriter)
+	printSourceName(src, stdOutWriter)
 }
 
 func handleError(err ...error) {
@@ -39,20 +45,28 @@ func handleError(err ...error) {
 }
 
 func errorAndQuit(err error) {
-	writer := defineio.NewPanicWriter(os.Stderr)
-
-	writer.WriteNewLine()
-	writer.WriteStringLine(err.Error())
-	writer.WriteNewLine()
+	defineio.NewPanicWriter(os.Stderr).IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
+		writer.WriteNewLine()
+		writer.WriteStringLine(err.Error())
+		writer.WriteNewLine()
+	})
 
 	os.Exit(1) // TODO: Error codes?
 }
 
-func printResult(result source.Result, out io.Writer) {
-	writer := defineio.NewPanicWriter(out)
+func printSourceName(src source.Source, writer *defineio.PanicWriter) {
+	writer.IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
+		text := fmt.Sprintf("Results provided by: %q", src.Name())
+		separatorSize := int(math.Min(float64(60), float64(len(text))))
 
-	const indentSize = 2
+		writer.WriteNewLine()
+		writer.WriteStringLine(strings.Repeat("-", separatorSize))
+		writer.WriteStringLine(text)
+		writer.WriteNewLine()
+	})
+}
 
+func printResult(result source.Result, writer *defineio.PanicWriter) {
 	writer.IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
 		writer.WriteNewLine()
 		writer.WriteStringLine(getHeader(result))
