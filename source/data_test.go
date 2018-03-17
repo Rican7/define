@@ -54,6 +54,20 @@ func TestEntries(t *testing.T) {
 	}
 }
 
+func TestEntriesPanicsOnInvalidType(t *testing.T) {
+	defer func() {
+		if nil == recover() {
+			t.Errorf("Entries with an invalid type did not panic.")
+		}
+	}()
+
+	ResultValue{
+		EntryVals: []interface{}{
+			1234,
+		},
+	}.Entries()
+}
+
 func TestWord(t *testing.T) {
 	e := WordEntryValue{WordVal: "test"}
 
