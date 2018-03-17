@@ -117,25 +117,28 @@ func (g *api) Define(word string) (source.Result, error) {
 
 // toResult converts the proprietary API result to a generic source.Result
 func (r apiResult) toResult() source.Result {
-	sense := source.SenseValue{}
 	entry := glosbeEntry{
 		source.DictionaryEntryValue{},
 		source.ThesaurusEntryValue{},
 	}
+
+	senses := make([]source.SenseValue, 0)
 
 	for _, item := range r.TUC {
 		// Entries are only valid definitions if they don't have a separate
 		// phrase, or their phrase matches the looked-up phrase
 		if nil == item.Phrase || strings.EqualFold(item.Phrase.Text, r.Phrase) {
 			for _, meaning := range item.Meanings {
-				sense.DefinitionVals = append(sense.DefinitionVals, meaning.Text)
+				sense := source.SenseValue{DefinitionVals: []string{meaning.Text}}
+
+				senses = append(senses, sense)
 			}
 		} else if nil != item.Phrase && "" != item.Phrase.Text {
 			entry.SynonymVals = append(entry.SynonymVals, item.Phrase.Text)
 		}
 	}
 
-	entry.SenseVals = []source.SenseValue{sense}
+	entry.SenseVals = senses
 
 	return source.ResultValue{
 		Head:      r.Phrase,
