@@ -20,7 +20,7 @@ type EmptyResultError struct {
 
 // InvalidResponseError represents an error caused by an invalid response
 type InvalidResponseError struct {
-	httpResponse http.Response
+	httpResponse *http.Response
 }
 
 // ValidateResult validates the result and returns an error if invalid
@@ -47,6 +47,10 @@ func ValidateAndReturnResult(result Result) (Result, error) {
 // ValidateHTTPResponse validates an HTTP response and returns an error if the
 // response is invalid
 func ValidateHTTPResponse(httpResponse *http.Response, validStatusCodes ...int) error {
+	if nil == httpResponse {
+		return &InvalidResponseError{}
+	}
+
 	validStatusCodes = append(acceptableStatusCodes, validStatusCodes...)
 
 	isValidStatusCode := false
@@ -60,7 +64,7 @@ func ValidateHTTPResponse(httpResponse *http.Response, validStatusCodes ...int) 
 	}
 
 	if !isValidStatusCode {
-		return &InvalidResponseError{*httpResponse}
+		return &InvalidResponseError{httpResponse}
 	}
 
 	return nil
