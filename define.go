@@ -141,21 +141,17 @@ func printResult(result source.Result, writer *defineio.PanicWriter) {
 						writer.WriteStringLine("Synonyms")
 						writer.WriteNewLine()
 
-						for _, synonym := range thesaurusEntry.Synonyms() {
-							writer.WriteStringLine(synonym)
-						}
+						writer.WriteStringLine(strings.Join(thesaurusEntry.Synonyms(), " ; "))
 
 						writer.WriteNewLine()
 					}
 
-					if 0 < len(thesaurusEntry.Synonyms()) {
+					if 0 < len(thesaurusEntry.Antonyms()) {
 						writer.WriteNewLine()
 						writer.WriteStringLine("Antonyms")
 						writer.WriteNewLine()
 
-						for _, antonym := range thesaurusEntry.Antonyms() {
-							writer.WriteStringLine(antonym)
-						}
+						writer.WriteStringLine(strings.Join(thesaurusEntry.Antonyms(), " ; "))
 
 						writer.WriteNewLine()
 					}
