@@ -16,6 +16,9 @@ import (
 	"github.com/Rican7/define/source"
 )
 
+// Name defines the name of the source
+const Name = "Merriam-Webster's Dictionary API"
+
 const (
 	// baseURLString is the base URL for all Webster API interactions
 	baseURLString = "http://www.dictionaryapi.com/api/v1/"
@@ -187,6 +190,11 @@ func init() {
 // New returns a new Webster API dictionary source
 func New(httpClient http.Client, appKey string) source.Source {
 	return &api{&httpClient, appKey}
+}
+
+// Name returns the name of the source
+func (g *api) Name() string {
+	return Name
 }
 
 // Define takes a word string and returns a dictionary source.Result

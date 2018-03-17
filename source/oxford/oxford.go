@@ -13,6 +13,9 @@ import (
 	"github.com/Rican7/define/source"
 )
 
+// Name defines the name of the source
+const Name = "Oxford Dictionaries API"
+
 const (
 	// baseURLString is the base URL for all Oxford API interactions
 	baseURLString = "https://od-api.oxforddictionaries.com/api/v1/"
@@ -222,6 +225,11 @@ func init() {
 // New returns a new Oxford API dictionary source
 func New(httpClient http.Client, appID, appKey string) source.Source {
 	return &api{&httpClient, appID, appKey}
+}
+
+// Name returns the name of the source
+func (g *api) Name() string {
+	return Name
 }
 
 // Define takes a word string and returns a dictionary source.Result

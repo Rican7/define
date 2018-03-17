@@ -13,6 +13,9 @@ import (
 	"github.com/Rican7/define/source"
 )
 
+// Name defines the name of the source
+const Name = "Glosbe API"
+
 const (
 	// baseURLString is the base URL for all Glosbe API interactions
 	baseURLString = "https://glosbe.com/gapi/translate?format=json&from=en&dest=en"
@@ -67,6 +70,11 @@ func init() {
 // New returns a new Glosbe API dictionary source
 func New(httpClient http.Client) source.Source {
 	return &api{&httpClient}
+}
+
+// Name returns the name of the source
+func (g *api) Name() string {
+	return Name
 }
 
 // Define takes a word string and returns a dictionary source.Result

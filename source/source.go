@@ -5,6 +5,8 @@ package source
 
 // Source defines an interface for interacting with different dictionaries
 type Source interface {
+	Name() string
+
 	Define(word string) (Result, error)
 }
 
