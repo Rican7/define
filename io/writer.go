@@ -1,4 +1,5 @@
-// Package io TODO
+// Package io provides types that enable easy and more consistent input/output
+// by wrapping the standard types
 //
 // Copyright © 2018 Trevor N. Suarez (Rican7)
 package io
