@@ -10,6 +10,7 @@ type ResultValue struct {
 // An EntryValue contains the common attributes of a complete account of a
 // particular word
 type EntryValue struct {
+	WordEntryValue
 	DictionaryEntryValue
 	EtymologyEntryValue
 	ThesaurusEntryValue
