@@ -1,4 +1,5 @@
 // Copyright © 2018 Trevor N. Suarez (Rican7)
+
 package io
 
 import (
