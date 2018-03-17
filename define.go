@@ -90,7 +90,12 @@ func printResult(result source.Result, writer *defineio.PanicWriter) {
 				for senseIndex, sense := range entry.Senses() {
 					prefix := fmt.Sprintf("%d. ", senseIndex+1)
 
-					for _, definition := range sense.Definitions() {
+					for defIndex, definition := range sense.Definitions() {
+						// Change the prefix after the first definition
+						if 0 < defIndex {
+							prefix = " - "
+						}
+
 						writer.WriteStringLine(prefix + definition)
 					}
 
