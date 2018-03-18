@@ -1,6 +1,6 @@
-// A command-line dictionary (thesaurus) app, written in Go.
-//
 // Copyright © 2018 Trevor N. Suarez (Rican7)
+
+// A command-line dictionary (thesaurus) app, written in Go.
 package main
 
 import (

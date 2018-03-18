@@ -1,6 +1,6 @@
-// Package webster provides a dictionary source via the Webster Dictionaries API
-//
 // Copyright © 2018 Trevor N. Suarez (Rican7)
+
+// Package webster provides a dictionary source via the Webster Dictionaries API
 package webster
 
 import (

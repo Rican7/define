@@ -1,6 +1,7 @@
-// Package source defines interfaces to be implemented by dictionary sources.
-//
 // Copyright © 2018 Trevor N. Suarez (Rican7)
+
+// Package source defines interfaces to be implemented by dictionary sources and
+// common structures and operations for those implementations to use.
 package source
 
 // Source defines an interface for interacting with different dictionaries

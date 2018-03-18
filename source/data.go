@@ -1,3 +1,5 @@
+// Copyright © 2018 Trevor N. Suarez (Rican7)
+
 package source
 
 // A ResultValue contains the common attributes of a dictionary lookup result

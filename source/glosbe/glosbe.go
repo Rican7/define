@@ -1,6 +1,6 @@
-// Package glosbe provides a dictionary source via the Glosbe API
-//
 // Copyright © 2018 Trevor N. Suarez (Rican7)
+
+// Package glosbe provides a dictionary source via the Glosbe API
 package glosbe
 
 import (

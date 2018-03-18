@@ -1,6 +1,6 @@
-// Package oxford provides a dictionary source via the Oxford Dictionaries API
-//
 // Copyright © 2018 Trevor N. Suarez (Rican7)
+
+// Package oxford provides a dictionary source via the Oxford Dictionaries API
 package oxford
 
 import (
