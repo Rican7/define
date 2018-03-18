@@ -19,15 +19,35 @@ import (
 
 const appName = "define"
 
+const defaultIndentationSize = 2
+
 var flags *flag.FlagSet
 var conf config.Configuration
 
 func init() {
 	var err error
 
+	// Define a writer for our flags with a default indentation size, since we
+	// won't have access to our configuation yet
+	flagWriter := defineio.NewPanicWriter(os.Stderr)
+
 	flags = flag.NewFlagSet(appName, flag.ContinueOnError)
+	flags.SetOutput(flagWriter.IndentedWriter(defaultIndentationSize))
+	flags.Usage = func() {
+		flagWriter.IndentWrites(defaultIndentationSize, func(w *defineio.PanicWriter) {
+			w.WriteNewLine()
+			w.WriteStringLine(fmt.Sprintf("Usage of %s:", appName))
+			w.WriteNewLine()
+
+			flags.PrintDefaults()
+			w.WriteNewLine()
+
+			printAndQuit("", 2)
+		})
+	}
+
 	conf, err = config.NewFromRuntime(flags, config.Configuration{
-		IndentationSize: 2,
+		IndentationSize: defaultIndentationSize,
 	})
 
 	handleError(err)
@@ -55,11 +75,6 @@ func main() {
 func handleError(err ...error) {
 	for _, e := range err {
 		if nil != e {
-			if e == flag.ErrHelp {
-				// Don't print a message
-				printAndQuit("", 2)
-			}
-
 			printAndQuit(e.Error(), 1)
 		}
 	}
