@@ -17,6 +17,10 @@ type PanicWriter struct {
 	spaces uint
 }
 
+// PanicWriterWriter is a writer that wraps the PanicWriter to provide an
+// io.Writer compatible interface for callers
+type PanicWriterWriter PanicWriter
+
 // NewPanicWriter returns a new PanicWriter based on a wrapped io.Writer.
 func NewPanicWriter(writer io.Writer) *PanicWriter {
 	return &PanicWriter{inner: writer}
@@ -84,7 +88,30 @@ func (w *PanicWriter) WriteStringLine(p string) int {
 // already indented, the number of spaces will be additive to the current number
 // of contextual spaces.
 func (w *PanicWriter) IndentWrites(spaces uint, writesFunc func(*PanicWriter)) {
-	writer := &PanicWriter{w.inner, w.spaces + spaces}
+	writesFunc(w.indented(spaces))
+}
 
-	writesFunc(writer)
+// IndentedWriter returns an io.Writer compatible version of the PanicWriter,
+// with a number of spaces to indent all writes. If the current writer is
+// already indented, the number of spaces will be additive to the current
+// number of contextual spaces.
+func (w *PanicWriter) IndentedWriter(spaces uint) io.Writer {
+	return (*PanicWriterWriter)(w.indented(spaces))
+}
+
+// Writer returns an io.Writer compatible version of the PanicWriter
+func (w *PanicWriter) Writer() io.Writer {
+	return (*PanicWriterWriter)(w)
+}
+
+// indented returns a PanicWriter with a number of spaces to indent all writes.
+// If the current writer is already indented, the number of spaces will be
+// additive to the current number of contextual spaces.
+func (w *PanicWriter) indented(spaces uint) *PanicWriter {
+	return &PanicWriter{w.inner, w.spaces + spaces}
+}
+
+func (w *PanicWriterWriter) Write(p []byte) (int, error) {
+	// Call the PanicWriter's version, and return a nil error
+	return (*PanicWriter)(w).Write(p), nil
 }
