@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/imdario/mergo"
-	"github.com/ogier/pflag"
+	flag "github.com/ogier/pflag"
 )
 
 // Configuration defines the application's configuration structure
@@ -19,7 +19,7 @@ type Configuration struct {
 
 // initializeCommandLineConfig initializes the command line configuration from
 // a list of arguments that are parsed as flags.
-func initializeCommandLineConfig(flags *pflag.FlagSet, args []string) (Configuration, error) {
+func initializeCommandLineConfig(flags *flag.FlagSet, args []string) (Configuration, error) {
 	var conf Configuration
 
 	// Define our flags
@@ -66,7 +66,7 @@ func mergeConfigurations(confs ...Configuration) (Configuration, error) {
 // 1. Command line arguments
 // 2. Environment variables
 // 3. Passed in default values
-func NewFromRuntime(flags *pflag.FlagSet, defaults Configuration) (Configuration, error) {
+func NewFromRuntime(flags *flag.FlagSet, defaults Configuration) (Configuration, error) {
 	var conf Configuration
 	var err error
 
