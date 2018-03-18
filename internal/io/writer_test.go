@@ -5,8 +5,14 @@ package io
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
+)
+
+// Enforce interface contracts
+var (
+	_ io.Writer = (*PanicWriterWriter)(nil)
 )
 
 type writerShouldError bool
@@ -280,4 +286,84 @@ func TestIndentWrites(t *testing.T) {
 			}
 		})
 	})
+}
+
+func TestIndentedWriter(t *testing.T) {
+	indentSize := uint(2)
+
+	pw := &PanicWriter{inner: &strings.Builder{}}
+
+	if 0 != pw.spaces {
+		t.Errorf(
+			"Writer has incorrect indent size. Got %d. Want %d.",
+			pw.spaces,
+			0,
+		)
+	}
+
+	w := pw.IndentedWriter(indentSize).(*PanicWriterWriter)
+
+	if indentSize != (*PanicWriter)(w).spaces {
+		t.Errorf(
+			"Writer has incorrect indent size. Got %d. Want %d.",
+			(*PanicWriter)(w).spaces,
+			indentSize,
+		)
+	}
+}
+
+func TestWriter(t *testing.T) {
+	pw := &PanicWriter{inner: &strings.Builder{}}
+
+	w := pw.Writer()
+
+	if _, ok := w.(io.Writer); !ok {
+		t.Errorf("Writer can't be asserted as an io.Writer")
+	}
+}
+
+func TestIndented(t *testing.T) {
+	indentSize := uint(2)
+
+	pw := &PanicWriter{inner: &strings.Builder{}}
+
+	if 0 != pw.spaces {
+		t.Errorf(
+			"Writer has incorrect indent size. Got %d. Want %d.",
+			pw.spaces,
+			0,
+		)
+	}
+
+	w := pw.indented(indentSize)
+
+	if indentSize != w.spaces {
+		t.Errorf(
+			"Writer has incorrect indent size. Got %d. Want %d.",
+			w.spaces,
+			indentSize,
+		)
+	}
+}
+
+func TestPanicWriterWriterWrite(t *testing.T) {
+	toWrite := []byte("test")
+	want := len(toWrite)
+
+	w := &strings.Builder{}
+	pw := (*PanicWriterWriter)(&PanicWriter{inner: w})
+
+	got, err := pw.Write(toWrite)
+
+	if got != want || got != w.Len() || w.String() != string(toWrite) {
+		t.Errorf(
+			"Write didn't write the expected number of bytes. Got %d. Want %d.",
+			got,
+			want,
+		)
+	}
+
+	if nil != err {
+		t.Errorf("Write returned an error when not expected. Got %#v.", err)
+	}
 }
