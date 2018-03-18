@@ -52,7 +52,7 @@ func TestWriteWithSpaces(t *testing.T) {
 	want := len(expectedBytes)
 
 	w := &strings.Builder{}
-	pw := &PanicWriter{inner: w, spaces: numSpaces}
+	pw := &PanicWriter{inner: w, spaces: uint(numSpaces)}
 
 	got := pw.Write(toWrite)
 
@@ -247,7 +247,7 @@ func TestWriteStringLine(t *testing.T) {
 }
 
 func TestIndentWrites(t *testing.T) {
-	indentSize := 2
+	indentSize := uint(2)
 
 	w := &strings.Builder{}
 	pw := &PanicWriter{inner: w}

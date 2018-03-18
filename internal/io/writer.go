@@ -14,7 +14,7 @@ import (
 type PanicWriter struct {
 	inner io.Writer
 
-	spaces int
+	spaces uint
 }
 
 // NewPanicWriter returns a new PanicWriter based on a wrapped io.Writer.
@@ -26,7 +26,7 @@ func NewPanicWriter(writer io.Writer) *PanicWriter {
 // that were written. It'll panic if any error occurs during writing.
 func (w *PanicWriter) Write(p []byte) int {
 	if 0 < w.spaces {
-		p = append(bytes.Repeat([]byte(" "), w.spaces), p...)
+		p = append(bytes.Repeat([]byte(" "), int(w.spaces)), p...)
 	}
 
 	n, err := w.inner.Write(p)
@@ -83,7 +83,7 @@ func (w *PanicWriter) WriteStringLine(p string) int {
 // the callback are indented by the given space number. If the current writer is
 // already indented, the number of spaces will be additive to the current number
 // of contextual spaces.
-func (w *PanicWriter) IndentWrites(spaces int, writesFunc func(*PanicWriter)) {
+func (w *PanicWriter) IndentWrites(spaces uint, writesFunc func(*PanicWriter)) {
 	writer := &PanicWriter{w.inner, w.spaces + spaces}
 
 	writesFunc(writer)

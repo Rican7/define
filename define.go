@@ -10,18 +10,34 @@ import (
 	"os"
 	"strings"
 
-	defineio "github.com/Rican7/define/io"
+	"github.com/Rican7/define/internal/config"
+	defineio "github.com/Rican7/define/internal/io"
 	"github.com/Rican7/define/source"
 	"github.com/Rican7/define/source/glosbe"
+	flag "github.com/ogier/pflag"
 )
 
-var indentSize = 2
+const appName = "define"
+
+var flags *flag.FlagSet
+var conf config.Configuration
+
+func init() {
+	var err error
+
+	flags = flag.NewFlagSet(appName, flag.ContinueOnError)
+	conf, err = config.NewFromRuntime(flags, config.Configuration{
+		IndentationSize: 2,
+	})
+
+	handleError(err)
+}
 
 func main() {
-	var word string
+	word := flags.Arg(0)
 
-	if len(os.Args) >= 2 {
-		word = os.Args[1]
+	if "" == word {
+		handleError(fmt.Errorf("No word provided"))
 	}
 
 	src := glosbe.New(http.Client{})
@@ -39,23 +55,30 @@ func main() {
 func handleError(err ...error) {
 	for _, e := range err {
 		if nil != e {
-			errorAndQuit(e)
+			if e == flag.ErrHelp {
+				// Don't print a message
+				printAndQuit("", 2)
+			}
+
+			printAndQuit(e.Error(), 1)
 		}
 	}
 }
 
-func errorAndQuit(err error) {
-	defineio.NewPanicWriter(os.Stderr).IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
-		writer.WriteNewLine()
-		writer.WriteStringLine(err.Error())
-		writer.WriteNewLine()
-	})
+func printAndQuit(msg string, code int) {
+	if "" != msg {
+		defineio.NewPanicWriter(os.Stderr).IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
+			writer.WriteNewLine()
+			writer.WriteStringLine(msg)
+			writer.WriteNewLine()
+		})
+	}
 
-	os.Exit(1) // TODO: Error codes?
+	os.Exit(code)
 }
 
 func printSourceName(src source.Source, writer *defineio.PanicWriter) {
-	writer.IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
+	writer.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
 		text := fmt.Sprintf("Results provided by: %q", src.Name())
 		separatorSize := int(math.Min(float64(60), float64(len(text))))
 
@@ -67,7 +90,7 @@ func printSourceName(src source.Source, writer *defineio.PanicWriter) {
 }
 
 func printResult(result source.Result, writer *defineio.PanicWriter) {
-	writer.IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
+	writer.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
 		writer.WriteNewLine()
 		writer.WriteStringLine(getHeader(result))
 		writer.WriteNewLine()
@@ -79,7 +102,7 @@ func printResult(result source.Result, writer *defineio.PanicWriter) {
 				writer.WriteStringLine(entryHeader)
 			}
 
-			writer.IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
+			writer.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
 
 				if wordEntry, isWordEntry := entry.(source.WordEntry); isWordEntry && "" != wordEntry.Category() {
 					writer.WriteNewLine()
@@ -99,7 +122,7 @@ func printResult(result source.Result, writer *defineio.PanicWriter) {
 						writer.WriteStringLine(prefix + definition)
 					}
 
-					writer.IndentWrites(len(prefix), func(writer *defineio.PanicWriter) {
+					writer.IndentWrites(uint(len(prefix)), func(writer *defineio.PanicWriter) {
 						for _, examples := range sense.Examples() {
 							writer.WriteStringLine(fmt.Sprintf("%q", examples))
 						}
@@ -109,7 +132,7 @@ func printResult(result source.Result, writer *defineio.PanicWriter) {
 						}
 					})
 
-					writer.IndentWrites(indentSize, func(writer *defineio.PanicWriter) {
+					writer.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
 						for _, subSense := range sense.Subsenses() {
 							prefix := " - "
 
@@ -117,7 +140,7 @@ func printResult(result source.Result, writer *defineio.PanicWriter) {
 								writer.WriteStringLine(prefix + definition)
 							}
 
-							writer.IndentWrites(len(prefix), func(writer *defineio.PanicWriter) {
+							writer.IndentWrites(uint(len(prefix)), func(writer *defineio.PanicWriter) {
 								if len(subSense.Examples()) > 0 {
 									writer.WriteStringLine(fmt.Sprintf("%q", subSense.Examples()[0]))
 								}
