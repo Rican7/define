@@ -5,12 +5,16 @@ package source
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 const (
 	emptyResultErrorMessage         = "The source returned an empty result"
+	authenticationErrorMessage      = "The source returned an authentication error"
 	invalidResponseErrorMessage     = "The source returned an invalid response"
 	errorMessageForWordSuffixFormat = " for word: %q"
+
+	contentTypeHeaderName = "Content-Type"
 )
 
 var acceptableStatusCodes = []int{http.StatusOK}
@@ -18,6 +22,10 @@ var acceptableStatusCodes = []int{http.StatusOK}
 // EmptyResultError represents an error caused by an empty result
 type EmptyResultError struct {
 	Word string
+}
+
+// AuthenticationError represents an error caused by an authentication problem
+type AuthenticationError struct {
 }
 
 // InvalidResponseError represents an error caused by an invalid response
@@ -48,7 +56,7 @@ func ValidateAndReturnResult(result Result) (Result, error) {
 
 // ValidateHTTPResponse validates an HTTP response and returns an error if the
 // response is invalid
-func ValidateHTTPResponse(httpResponse *http.Response, validStatusCodes ...int) error {
+func ValidateHTTPResponse(httpResponse *http.Response, validContentTypes []string, validStatusCodes []int) error {
 	if nil == httpResponse {
 		return &InvalidResponseError{}
 	}
@@ -58,14 +66,29 @@ func ValidateHTTPResponse(httpResponse *http.Response, validStatusCodes ...int) 
 	isValidStatusCode := false
 
 	// Check if the HTTP response code is valid
-	for _, statusCode := range validStatusCodes {
-		if statusCode == httpResponse.StatusCode {
+	for _, validStatusCode := range validStatusCodes {
+		if validStatusCode == httpResponse.StatusCode {
 			isValidStatusCode = true
 			break
 		}
 	}
 
-	if !isValidStatusCode {
+	contentType := strings.ToLower(httpResponse.Header.Get(contentTypeHeaderName))
+	isValidContentType := false
+
+	if len(validContentTypes) < 1 {
+		isValidContentType = true
+	}
+
+	// Check if the HTTP content-type is valid
+	for _, validContentType := range validContentTypes {
+		if strings.Contains(contentType, strings.ToLower(validContentType)) {
+			isValidContentType = true
+			break
+		}
+	}
+
+	if !isValidStatusCode || !isValidContentType {
 		return &InvalidResponseError{httpResponse}
 	}
 
@@ -80,6 +103,10 @@ func (e *EmptyResultError) Error() string {
 	}
 
 	return msg
+}
+
+func (e *AuthenticationError) Error() string {
+	return authenticationErrorMessage
 }
 
 func (e *InvalidResponseError) Error() string {

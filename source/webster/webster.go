@@ -28,7 +28,9 @@ const (
 	httpRequestAcceptHeaderName     = "Accept"
 	httpRequestAppKeyQueryParamName = "key"
 
-	xmlMIMEType = "application/xml"
+	xmlMIMEType     = "application/xml"
+	xmlTextMIMEType = "text/xml"
+	xmlBaseMIMEType = "xml"
 
 	senseTagName        = "sn"
 	senseDividerTagName = "sd"
@@ -44,6 +46,9 @@ const (
 
 // apiURL is the URL instance used for Webster API calls
 var apiURL *url.URL
+
+// validMIMETypes is the list of valid response MIME types
+var validMIMETypes = []string{xmlMIMEType, xmlTextMIMEType, xmlBaseMIMEType}
 
 // stringCleaner is used to clean the strings returned from the API
 // TODO: Replace with an HTML entities cleaner?
@@ -216,6 +221,8 @@ func (g *api) Define(word string) (source.Result, error) {
 	}
 
 	httpRequest.Header.Set(httpRequestAcceptHeaderName, xmlMIMEType)
+	httpRequest.Header.Add(httpRequestAcceptHeaderName, xmlTextMIMEType)
+	httpRequest.Header.Add(httpRequestAcceptHeaderName, xmlBaseMIMEType)
 
 	httpResponse, err := g.httpClient.Do(httpRequest)
 
@@ -225,7 +232,7 @@ func (g *api) Define(word string) (source.Result, error) {
 
 	defer httpResponse.Body.Close()
 
-	if err = source.ValidateHTTPResponse(httpResponse); nil != err {
+	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); nil != err {
 		return nil, err
 	}
 

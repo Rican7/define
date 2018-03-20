@@ -22,10 +22,16 @@ const (
 
 	// wordParameter defines the HTTP parameter for the word to define
 	wordParameter = "phrase"
+
+	httpRequestAcceptHeaderName = "Accept"
+	jsonMIMEType                = "application/json"
 )
 
 // apiURL is the URL instance used for Glosbe API calls
 var apiURL *url.URL
+
+// validMIMETypes is the list of valid response MIME types
+var validMIMETypes = []string{jsonMIMEType}
 
 // api is a struct containing a configured HTTP client for Glosbe API operations
 type api struct {
@@ -84,15 +90,21 @@ func (g *api) Define(word string) (source.Result, error) {
 	queryParams.Set(wordParameter, word)
 	apiURL.RawQuery = queryParams.Encode()
 
-	httpResponse, err := g.httpClient.Get(apiURL.String())
+	httpRequest, err := http.NewRequest(http.MethodGet, apiURL.String(), nil)
 
 	if nil != err {
 		return nil, err
 	}
 
-	defer httpResponse.Body.Close()
+	httpRequest.Header.Set(httpRequestAcceptHeaderName, jsonMIMEType)
 
-	if err = source.ValidateHTTPResponse(httpResponse); nil != err {
+	httpResponse, err := g.httpClient.Do(httpRequest)
+
+	if nil != err {
+		return nil, err
+	}
+
+	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); nil != err {
 		return nil, err
 	}
 

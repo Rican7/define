@@ -34,6 +34,9 @@ const (
 // apiURL is the URL instance used for Oxford API calls
 var apiURL *url.URL
 
+// validMIMETypes is the list of valid response MIME types
+var validMIMETypes = []string{jsonMIMEType}
+
 // api is a struct containing a configured HTTP client for Oxford API operations
 type api struct {
 	httpClient *http.Client
@@ -259,12 +262,16 @@ func (g *api) Define(word string) (source.Result, error) {
 
 	defer httpResponse.Body.Close()
 
-	if err = source.ValidateHTTPResponse(httpResponse, http.StatusOK, http.StatusNotFound); nil != err {
-		return nil, err
-	}
-
 	if http.StatusNotFound == httpResponse.StatusCode {
 		return nil, &source.EmptyResultError{word}
+	}
+
+	if http.StatusForbidden == httpResponse.StatusCode {
+		return nil, &source.AuthenticationError{}
+	}
+
+	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); nil != err {
+		return nil, err
 	}
 
 	body, err := ioutil.ReadAll(httpResponse.Body)

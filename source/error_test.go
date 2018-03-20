@@ -60,6 +60,7 @@ func TestValidateAndReturnResult(t *testing.T) {
 func TestValidateHTTPResponse(t *testing.T) {
 	testData := []struct {
 		httpResponse     *http.Response
+		validMIMETypes   []string
 		validStatusCodes []int
 		wantErr          bool
 	}{
@@ -67,13 +68,30 @@ func TestValidateHTTPResponse(t *testing.T) {
 		{httpResponse: &http.Response{StatusCode: 400}, wantErr: true},
 		{httpResponse: &http.Response{StatusCode: 500}, wantErr: true},
 		{httpResponse: &http.Response{StatusCode: 500}, validStatusCodes: []int{500}, wantErr: false},
+		{
+			httpResponse: &http.Response{
+				StatusCode: 200,
+				Header:     http.Header{contentTypeHeaderName: []string{"application/test;charset=UTF-8"}},
+			},
+			validMIMETypes: []string{"application/test", "foo"},
+			wantErr:        false,
+		},
+		{
+			httpResponse: &http.Response{
+				StatusCode: 500,
+				Header:     http.Header{contentTypeHeaderName: []string{"application/test;charset=UTF-8"}},
+			},
+			validMIMETypes:   []string{"application/test", "foo"},
+			validStatusCodes: []int{500},
+			wantErr:          false,
+		},
 		{httpResponse: &http.Response{StatusCode: 200}, wantErr: false},
 	}
 
 	expectedErrType := reflect.TypeOf(&InvalidResponseError{}).Elem().Name()
 
 	for _, tt := range testData {
-		err := ValidateHTTPResponse(tt.httpResponse, tt.validStatusCodes...)
+		err := ValidateHTTPResponse(tt.httpResponse, tt.validMIMETypes, tt.validStatusCodes)
 		invalidRespErr, ok := err.(*InvalidResponseError)
 
 		if (err != nil) != tt.wantErr {
@@ -102,6 +120,14 @@ func TestEmptyResultError_Error(t *testing.T) {
 
 	if !strings.Contains(msg, word) {
 		t.Errorf("Error message %q didn't contain word %q", msg, word)
+	}
+}
+
+func TestAuthenticationError_Error(t *testing.T) {
+	msg := (&AuthenticationError{}).Error()
+
+	if "" == msg {
+		t.Errorf("Error returned an empty message")
 	}
 }
 
