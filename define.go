@@ -59,8 +59,27 @@ func init() {
 
 	handleError(err)
 
-	// TODO: Choose based on preference or score?
-	provider := registry.Providers()[0]
+	providers := registry.Providers()
+
+	if len(providers) < 1 {
+		handleError(fmt.Errorf("No registered source providers"))
+	}
+
+	var provider string
+
+	if "" != conf.PreferredSource {
+		for i, providerName := range providers {
+			if providerName == conf.PreferredSource {
+				provider = providers[i]
+			}
+		}
+
+		if "" == provider {
+			handleError(fmt.Errorf("Preferred provider/source %q does not exist", conf.PreferredSource))
+		}
+	} else {
+		provider = providers[0]
+	}
 
 	src, err = registry.Provide(provider, providerConfs[provider])
 

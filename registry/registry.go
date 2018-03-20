@@ -66,8 +66,8 @@ func ConfigureProviders(flags *flag.FlagSet) map[string]Configuration {
 }
 
 // Provide TODO
-func Provide(providerName string, conf Configuration) (source.Source, error) {
-	return providers[providerName].Provide(conf)
+func Provide(name string, conf Configuration) (source.Source, error) {
+	return providers[name].Provide(conf)
 }
 
 // Providers returns a list of the names of the registered providers.
