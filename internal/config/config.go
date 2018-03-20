@@ -8,13 +8,16 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/imdario/mergo"
 	flag "github.com/ogier/pflag"
+
+	"github.com/Rican7/define/source/oxford"
+	"github.com/imdario/mergo"
 )
 
 // Configuration defines the application's configuration structure
 type Configuration struct {
 	IndentationSize uint
+	PreferredSource string
 }
 
 // initializeCommandLineConfig initializes the command line configuration from
@@ -24,6 +27,7 @@ func initializeCommandLineConfig(flags *flag.FlagSet, args []string) (Configurat
 
 	// Define our flags
 	flags.UintVar(&conf.IndentationSize, "indent-size", 0, "The number of spaces to indent output by")
+	flags.StringVar(&conf.PreferredSource, "preferred-source", oxford.Name, "The preferred source to use, if available")
 
 	err := flags.Parse(args)
 
@@ -38,6 +42,8 @@ func initializeEnvironmentConfig() Configuration {
 	if val, err := strconv.ParseUint(os.Getenv("DEFINE_APP_INDENT_SIZE"), 10, 0); nil == err {
 		conf.IndentationSize = uint(val)
 	}
+
+	conf.PreferredSource = os.Getenv("DEFINE_APP_PREFERRED_SOURCE")
 
 	return conf
 }
