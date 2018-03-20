@@ -6,15 +6,18 @@ package main
 import (
 	"fmt"
 	"math"
-	"net/http"
 	"os"
 	"strings"
 
 	"github.com/Rican7/define/internal/config"
 	defineio "github.com/Rican7/define/internal/io"
+	"github.com/Rican7/define/registry"
 	"github.com/Rican7/define/source"
-	"github.com/Rican7/define/source/glosbe"
 	flag "github.com/ogier/pflag"
+
+	_ "github.com/Rican7/define/source/glosbe"
+	_ "github.com/Rican7/define/source/oxford"
+	_ "github.com/Rican7/define/source/webster"
 )
 
 const appName = "define"
@@ -23,6 +26,7 @@ const defaultIndentationSize = 2
 
 var flags *flag.FlagSet
 var conf config.Configuration
+var src source.Source
 
 func init() {
 	var err error
@@ -46,9 +50,19 @@ func init() {
 		})
 	}
 
+	// Configure our registered providers
+	providerConfs := registry.ConfigureProviders(flags)
+
 	conf, err = config.NewFromRuntime(flags, config.Configuration{
 		IndentationSize: defaultIndentationSize,
 	})
+
+	handleError(err)
+
+	// TODO: Choose based on preference or score?
+	provider := registry.Providers()[0]
+
+	src, err = registry.Provide(provider, providerConfs[provider])
 
 	handleError(err)
 }
@@ -59,8 +73,6 @@ func main() {
 	if "" == word {
 		handleError(fmt.Errorf("No word provided"))
 	}
-
-	src := glosbe.New(http.Client{})
 
 	result, err := src.Define(word)
 
