@@ -4,11 +4,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"strings"
 
+	"github.com/Rican7/define/internal/action"
 	"github.com/Rican7/define/internal/config"
 	defineio "github.com/Rican7/define/internal/io"
 	"github.com/Rican7/define/registry"
@@ -34,6 +36,7 @@ var (
 	stdOutWriter = defineio.NewPanicWriter(os.Stdout)
 
 	flags *flag.FlagSet
+	act   *action.Action
 	conf  config.Configuration
 	src   source.Source
 )
@@ -47,6 +50,8 @@ func init() {
 		quit(2)
 	}
 	flags.SetOutput(stdErrWriter.Writer())
+
+	act = action.Setup(flags)
 
 	// Configure our registered providers
 	providerConfs := registry.ConfigureProviders(flags)
@@ -84,23 +89,30 @@ func init() {
 	src, err = registry.Provide(provider, providerConfs[provider])
 
 	handleError(err)
+
+	// Make sure our flags are parsed before entering main
+	handleError(flags.Parse(os.Args[1:]))
 }
 
 func main() {
+	// Get the word from our first non-flag argument
 	word := flags.Arg(0)
 
-	if "" == word {
-		// Show our usage
-		printUsage(stdOutWriter, conf.IndentationSize)
-		quit(1)
+	// Decide what to perform
+	switch act.Type() {
+	case action.PrintConfig:
+		printConfig()
+	case action.DefineWord:
+		fallthrough
+	default:
+		if "" == word {
+			// Show our usage
+			printUsage(stdOutWriter, conf.IndentationSize)
+			quit(1)
+		} else {
+			defineWord(word)
+		}
 	}
-
-	result, err := src.Define(word)
-
-	handleError(err, source.ValidateResult(result))
-
-	printResult(result, stdOutWriter)
-	printSourceName(src, stdOutWriter)
 }
 
 func handleError(err ...error) {
@@ -121,6 +133,14 @@ func quit(code int) {
 	os.Exit(code)
 }
 
+func printConfig() {
+	encoded, err := json.MarshalIndent(conf, "", "    ")
+
+	handleError(err)
+
+	stdOutWriter.WriteStringLine(string(encoded))
+}
+
 func printUsage(writer *defineio.PanicWriter, indentSize uint) {
 	writer.IndentWrites(indentSize, func(w *defineio.PanicWriter) {
 		flags.SetOutput(w.Writer())
@@ -135,8 +155,17 @@ func printUsage(writer *defineio.PanicWriter, indentSize uint) {
 	})
 }
 
-func printSourceName(src source.Source, writer *defineio.PanicWriter) {
-	writer.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
+func defineWord(word string) {
+	result, err := src.Define(word)
+
+	handleError(err, source.ValidateResult(result))
+
+	printResult(result)
+	printSourceName(src)
+}
+
+func printSourceName(src source.Source) {
+	stdOutWriter.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
 		text := fmt.Sprintf("Results provided by: %q", src.Name())
 		separatorSize := int(math.Min(float64(60), float64(len(text))))
 
@@ -147,8 +176,8 @@ func printSourceName(src source.Source, writer *defineio.PanicWriter) {
 	})
 }
 
-func printResult(result source.Result, writer *defineio.PanicWriter) {
-	writer.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
+func printResult(result source.Result) {
+	stdOutWriter.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
 		writer.WriteNewLine()
 		writer.WriteStringLine(getHeader(result))
 		writer.WriteNewLine()
