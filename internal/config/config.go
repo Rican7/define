@@ -5,9 +5,13 @@
 package config
 
 import (
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"os"
 	"strconv"
 
+	homedir "github.com/mitchellh/go-homedir"
 	flag "github.com/ogier/pflag"
 
 	"github.com/imdario/mergo"
@@ -15,6 +19,8 @@ import (
 
 // Configuration defines the application's configuration structure
 type Configuration struct {
+	ConfigFileLocation string
+
 	IndentationSize uint
 	PreferredSource string
 }
@@ -25,10 +31,30 @@ func initializeCommandLineConfig(flags *flag.FlagSet, args []string) (Configurat
 	var conf Configuration
 
 	// Define our flags
+	flags.StringVarP(&conf.ConfigFileLocation, "config-file", "c", "", "The location of the config file to use")
 	flags.UintVar(&conf.IndentationSize, "indent-size", 0, "The number of spaces to indent output by")
 	flags.StringVar(&conf.PreferredSource, "preferred-source", "", "The preferred source to use, if available")
 
 	err := flags.Parse(args)
+
+	return conf, err
+}
+
+func initializeFileConfig(fileLocation string) (Configuration, error) {
+	var conf Configuration
+
+	// If we can expand the location, do so
+	if expanded, err := homedir.Expand(fileLocation); nil == err {
+		fileLocation = expanded
+	}
+
+	fileContents, err := ioutil.ReadFile(fileLocation)
+
+	if nil != err {
+		return conf, err
+	}
+
+	err = json.Unmarshal(fileContents, &conf)
 
 	return conf, err
 }
@@ -69,17 +95,49 @@ func mergeConfigurations(confs ...Configuration) (Configuration, error) {
 //
 // The merging of values from different sources will take this priority:
 // 1. Command line arguments
-// 2. Environment variables
-// 3. Passed in default values
+// 2. A loaded config file, if available
+// 3. Environment variables
+// 4. Passed in default values
 func NewFromRuntime(flags *flag.FlagSet, defaults Configuration) (Configuration, error) {
 	var conf Configuration
 	var err error
 
-	commandLineConfig, err := initializeCommandLineConfig(flags, os.Args[1:])
+	var commandLineConfig Configuration
+	var fileConfig Configuration
+
+	commandLineConfig, err = initializeCommandLineConfig(flags, os.Args[1:])
+
+	if nil == err {
+		configFileLocation := commandLineConfig.ConfigFileLocation
+
+		if "" == configFileLocation && "" != defaults.ConfigFileLocation {
+			// If we can expand the location, do so
+			if expanded, err := homedir.Expand(defaults.ConfigFileLocation); nil == err {
+				defaults.ConfigFileLocation = expanded
+			}
+
+			// If we haven't passed a config file flag, and our default exists
+			if _, err := os.Stat(defaults.ConfigFileLocation); !os.IsNotExist(err) {
+				// Set our location to the default, since it exists
+				// (if there are problems reading the file, we'll handle later)
+				configFileLocation = defaults.ConfigFileLocation
+			}
+		}
+
+		// If we have a config file to load
+		if "" != configFileLocation {
+			fileConfig, err = initializeFileConfig(configFileLocation)
+
+			if nil != err {
+				err = errors.New("Error reading config file")
+			}
+		}
+	}
 
 	if nil == err {
 		conf, err = mergeConfigurations(
 			commandLineConfig,
+			fileConfig,
 			initializeEnvironmentConfig(),
 			defaults,
 		)
