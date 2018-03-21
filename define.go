@@ -13,6 +13,7 @@ import (
 	"github.com/Rican7/define/internal/action"
 	"github.com/Rican7/define/internal/config"
 	defineio "github.com/Rican7/define/internal/io"
+	"github.com/Rican7/define/internal/version"
 	"github.com/Rican7/define/registry"
 	"github.com/Rican7/define/source"
 	flag "github.com/ogier/pflag"
@@ -23,8 +24,6 @@ import (
 )
 
 const (
-	appName = "define"
-
 	// Configuration defaults
 	defaultConfigFileLocation = "~/.define.conf"
 	defaultIndentationSize    = 2
@@ -44,7 +43,7 @@ var (
 func init() {
 	var err error
 
-	flags = flag.NewFlagSet(appName, flag.ContinueOnError)
+	flags = flag.NewFlagSet(version.AppName, flag.ContinueOnError)
 	flags.Usage = func() {
 		printUsage(stdErrWriter, defaultIndentationSize)
 		quit(2)
@@ -105,6 +104,8 @@ func main() {
 		printConfig()
 	case action.ListSources:
 		printSources()
+	case action.PrintVersion:
+		printVersion()
 	case action.DefineWord:
 		fallthrough
 	default:
@@ -158,12 +159,16 @@ func printSources() {
 	})
 }
 
+func printVersion() {
+	stdOutWriter.WriteStringLine(version.Printable())
+}
+
 func printUsage(writer *defineio.PanicWriter, indentSize uint) {
 	writer.IndentWrites(indentSize, func(w *defineio.PanicWriter) {
 		flags.SetOutput(w.Writer())
 
 		writer.WriteNewLine()
-		writer.WriteStringLine(fmt.Sprintf("Usage: %s [<options>...] <word>", appName))
+		writer.WriteStringLine(fmt.Sprintf("Usage: %s [<options>...] <word>", version.AppName))
 		writer.WriteNewLine()
 
 		writer.WriteStringLine("Options:")
