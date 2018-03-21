@@ -10,7 +10,6 @@ import (
 
 	flag "github.com/ogier/pflag"
 
-	"github.com/Rican7/define/source/oxford"
 	"github.com/imdario/mergo"
 )
 
@@ -27,7 +26,7 @@ func initializeCommandLineConfig(flags *flag.FlagSet, args []string) (Configurat
 
 	// Define our flags
 	flags.UintVar(&conf.IndentationSize, "indent-size", 0, "The number of spaces to indent output by")
-	flags.StringVar(&conf.PreferredSource, "preferred-source", oxford.Name, "The preferred source to use, if available")
+	flags.StringVar(&conf.PreferredSource, "preferred-source", "", "The preferred source to use, if available")
 
 	err := flags.Parse(args)
 

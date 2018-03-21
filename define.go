@@ -16,13 +16,14 @@ import (
 	flag "github.com/ogier/pflag"
 
 	_ "github.com/Rican7/define/source/glosbe"
-	_ "github.com/Rican7/define/source/oxford"
+	"github.com/Rican7/define/source/oxford"
 	_ "github.com/Rican7/define/source/webster"
 )
 
 const appName = "define"
 
 const defaultIndentationSize = 2
+const defaultPreferredSource = oxford.Name
 
 var flags *flag.FlagSet
 var conf config.Configuration
@@ -55,6 +56,7 @@ func init() {
 
 	conf, err = config.NewFromRuntime(flags, config.Configuration{
 		IndentationSize: defaultIndentationSize,
+		PreferredSource: defaultPreferredSource,
 	})
 
 	handleError(err)
