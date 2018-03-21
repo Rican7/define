@@ -3,6 +3,7 @@
 package webster
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -42,9 +43,6 @@ func initConfig(flags *flag.FlagSet) *config {
 	// Define our flags
 	flags.StringVar(&conf.AppKey, "meriam-webster-dictionary-app-key", "", fmt.Sprintf("The app key for the %s", Name))
 
-	// Attempt to get our values from environment variables
-	conf.AppKey = os.Getenv("MERIAM_WEBSTER_DICTIONARY_APP_KEY")
-
 	return conf
 }
 
@@ -54,6 +52,28 @@ func (e *RequiredConfigError) Error() string {
 
 func (c *config) JSONKey() string {
 	return JSONKey
+}
+
+// UnmarshalJSON defines how the configuration should be JSON unmarshalled.
+func (c *config) UnmarshalJSON(data []byte) error {
+	// Alias our type so that we can unmarshal as usual
+	type alias config
+	copy := &alias{}
+
+	// Unmarshal into our copy
+	err := json.Unmarshal(data, copy)
+
+	if nil != err {
+		return err
+	}
+
+	if "" == c.AppKey && "" != copy.AppKey {
+		c.AppKey = copy.AppKey
+	} else if "" == c.AppKey {
+		c.AppKey = os.Getenv("MERIAM_WEBSTER_DICTIONARY_APP_KEY")
+	}
+
+	return nil
 }
 
 func (p *provider) Name() string {

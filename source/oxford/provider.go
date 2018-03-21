@@ -3,6 +3,7 @@
 package oxford
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -44,10 +45,6 @@ func initConfig(flags *flag.FlagSet) *config {
 	flags.StringVar(&conf.AppID, "oxford-dictionary-app-id", "", fmt.Sprintf("The app ID for the %s", Name))
 	flags.StringVar(&conf.AppKey, "oxford-dictionary-app-key", "", fmt.Sprintf("The app key for the %s", Name))
 
-	// Attempt to get our values from environment variables
-	conf.AppID = os.Getenv("OXFORD_DICTIONARY_APP_ID")
-	conf.AppKey = os.Getenv("OXFORD_DICTIONARY_APP_KEY")
-
 	return conf
 }
 
@@ -57,6 +54,34 @@ func (e *RequiredConfigError) Error() string {
 
 func (c *config) JSONKey() string {
 	return JSONKey
+}
+
+// UnmarshalJSON defines how the configuration should be JSON unmarshalled.
+func (c *config) UnmarshalJSON(data []byte) error {
+	// Alias our type so that we can unmarshal as usual
+	type alias config
+	copy := &alias{}
+
+	// Unmarshal into our copy
+	err := json.Unmarshal(data, copy)
+
+	if nil != err {
+		return err
+	}
+
+	if "" == c.AppID && "" != copy.AppID {
+		c.AppID = copy.AppID
+	} else if "" == c.AppID {
+		c.AppID = os.Getenv("OXFORD_DICTIONARY_APP_ID")
+	}
+
+	if "" == c.AppKey && "" != copy.AppKey {
+		c.AppKey = copy.AppKey
+	} else if "" == c.AppKey {
+		c.AppKey = os.Getenv("OXFORD_DICTIONARY_APP_KEY")
+	}
+
+	return nil
 }
 
 func (p *provider) Name() string {
