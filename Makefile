@@ -23,6 +23,11 @@ endif
 GO_BUILD_FLAGS ?= -ldflags "${GO_LD_FLAGS}" -v
 GO_CLEAN_FLAGS ?= -i -x ${GO_BUILD_FLAGS}
 
+# Tool flags
+GOFMT_FLAGS ?= -s
+GOIMPORTS_FLAGS ?=
+GOLINT_MIN_CONFIDENCE ?= 0.3
+
 # Validate
 ifndef GOBIN
 $(error GOBIN must be set and non-empty)
@@ -51,8 +56,16 @@ ${VENDOR_DIR}: | check-dep
 
 install-deps: check-dep | ${VENDOR_DIR}
 
+install-deps-dev: install-deps
+	go get github.com/golang/lint/golint
+	go get golang.org/x/tools/cmd/goimports
+
 update-deps: check-dep
 	dep ensure -update
+
+update-deps-dev: update-deps
+	go get -u github.com/golang/lint/golint
+	go get -u golang.org/x/tools/cmd/goimports
 
 test: install-deps
 	go test -v ./...
@@ -60,6 +73,28 @@ test: install-deps
 test-with-coverage: install-deps
 	go test -cover ./...
 
+format-lint:
+	@errors=$$(gofmt -l ${GOFMT_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Format lint failed on:\n$${errors}\n"; exit 1; fi
+
+import-lint:
+	@errors=$$(goimports -l ${GOIMPORTS_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Import lint failed on:\n$${errors}\n"; exit 1; fi
+
+style-lint:
+	@errors=$$(golint -min_confidence=${GOLINT_MIN_CONFIDENCE} $$(go list ./... | grep -v /vendor/)); if [ "$${errors}" != "" ]; then echo "Style lint failed on:\n$${errors}\n"; exit 1; fi
+
+lint: install-deps-dev format-lint import-lint style-lint
+
+format-fix:
+	gofmt -w ${GOFMT_FLAGS} .
+
+import-fix:
+	goimports -w ${GOIMPORTS_FLAGS} .
+
+fix: install-deps-dev format-fix import-fix
+	go fix ./...
+
+vet:
+	go vet ./...
 
 
-.PHONY: all check-dep clean-deps clean build install install-deps update-deps test test-with-coverage
+.PHONY: all check-dep clean-deps clean build install install-deps install-deps-dev update-deps update-deps-dev test test-with-coverage format-lint import-lint style-lint lint format-fix import-fix fix vet
