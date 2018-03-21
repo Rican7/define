@@ -5,6 +5,7 @@
 package registry
 
 import (
+	"encoding/json"
 	"sort"
 	"sync"
 
@@ -33,6 +34,20 @@ type Configuration interface {
 	// should be "unique", so as not to overwrite/clash with other provider
 	// configurations.
 	JSONKey() string
+}
+
+// DynamicConfiguration defines a generic SourceProvider's configuration
+// structure that allows for a dynamic loading mechanism.
+type DynamicConfiguration interface {
+	Configuration
+	json.Unmarshaler
+
+	// Finalize is a method called on a configuration when loading is completed.
+	//
+	// The intent is to be able signal to the configuration that its been loaded
+	// so that it can perform any necessary post-load processes, such as
+	// validation, normalization, or having values fall-back to defaults.
+	Finalize()
 }
 
 // RegisterFunc is the function that allows SourceProviders to define and
@@ -73,6 +88,19 @@ func ConfigureProviders(flags *flag.FlagSet) map[string]Configuration {
 	})
 
 	return confs
+}
+
+// Finalize takes a number of configurations and marks them as loaded, if they
+// support a DynamicConfiguration signaling.
+//
+// This is intended to be called ONLY by the registry owner.
+// TODO: Prevent external calls somehow?
+func Finalize(confs ...Configuration) {
+	for _, conf := range confs {
+		if dynamicConf, ok := conf.(DynamicConfiguration); ok {
+			dynamicConf.Finalize()
+		}
+	}
 }
 
 // Provide takes a configuration and calls the associated source providers

@@ -65,6 +65,11 @@ func init() {
 		PreferredSource: defaultPreferredSource,
 	})
 
+	// Finalize our configurations
+	for _, providerConf := range providerConfs {
+		registry.Finalize(providerConf)
+	}
+
 	handleError(err)
 
 	var preferredProviderConfig registry.Configuration

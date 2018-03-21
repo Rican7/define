@@ -69,19 +69,25 @@ func (c *config) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if "" == c.AppID && "" != copy.AppID {
+	if "" == c.AppID {
 		c.AppID = copy.AppID
-	} else if "" == c.AppID {
-		c.AppID = os.Getenv("OXFORD_DICTIONARY_APP_ID")
 	}
 
-	if "" == c.AppKey && "" != copy.AppKey {
+	if "" == c.AppKey {
 		c.AppKey = copy.AppKey
-	} else if "" == c.AppKey {
-		c.AppKey = os.Getenv("OXFORD_DICTIONARY_APP_KEY")
 	}
 
 	return nil
+}
+
+func (c *config) Finalize() {
+	if "" == c.AppID {
+		c.AppID = os.Getenv("OXFORD_DICTIONARY_APP_ID")
+	}
+
+	if "" == c.AppKey {
+		c.AppKey = os.Getenv("OXFORD_DICTIONARY_APP_KEY")
+	}
 }
 
 func (p *provider) Name() string {

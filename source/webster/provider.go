@@ -67,13 +67,17 @@ func (c *config) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	if "" == c.AppKey && "" != copy.AppKey {
+	if "" == c.AppKey {
 		c.AppKey = copy.AppKey
-	} else if "" == c.AppKey {
-		c.AppKey = os.Getenv("MERIAM_WEBSTER_DICTIONARY_APP_KEY")
 	}
 
 	return nil
+}
+
+func (c *config) Finalize() {
+	if "" == c.AppKey {
+		c.AppKey = os.Getenv("MERIAM_WEBSTER_DICTIONARY_APP_KEY")
+	}
 }
 
 func (p *provider) Name() string {
