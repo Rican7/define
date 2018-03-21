@@ -98,6 +98,8 @@ func main() {
 	switch act.Type() {
 	case action.PrintConfig:
 		printConfig()
+	case action.ListSources:
+		printSources()
 	case action.DefineWord:
 		fallthrough
 	default:
@@ -135,6 +137,20 @@ func printConfig() {
 	handleError(err)
 
 	stdOutWriter.WriteStringLine(string(encoded))
+}
+
+func printSources() {
+	stdOutWriter.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
+		writer.WriteNewLine()
+		writer.WriteStringLine("Available sources:")
+		writer.WriteNewLine()
+
+		for i, source := range registry.ProviderNames() {
+			writer.WriteStringLine(fmt.Sprintf("%d. %q", i+1, source))
+		}
+
+		writer.WriteNewLine()
+	})
 }
 
 func printUsage(writer *defineio.PanicWriter, indentSize uint) {

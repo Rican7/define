@@ -12,6 +12,7 @@ import (
 const (
 	DefineWord Type = iota
 	PrintConfig
+	ListSources
 )
 
 // Type defines the type of action intended for the app to perform.
@@ -22,6 +23,7 @@ type Action struct {
 	flagSet *flag.FlagSet
 	flag    struct {
 		printConfig bool
+		listSources bool
 	}
 }
 
@@ -34,6 +36,7 @@ func Setup(flags *flag.FlagSet) *Action {
 
 	// Define our flags
 	flags.BoolVar(&act.flag.printConfig, "print-config", false, "To print the current configuration")
+	flags.BoolVar(&act.flag.listSources, "list-sources", false, "To print the available sources")
 
 	// Pass our flagset, so we can be diligent about parse checking later
 	act.flagSet = flags
@@ -55,6 +58,8 @@ func (a *Action) Type() Type {
 	switch {
 	case a.flag.printConfig:
 		return PrintConfig
+	case a.flag.listSources:
+		return ListSources
 	default:
 		return DefineWord
 	}
