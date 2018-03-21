@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	emptyResultErrorMessage         = "The source returned an empty result"
-	authenticationErrorMessage      = "The source returned an authentication error"
-	invalidResponseErrorMessage     = "The source returned an invalid response"
+	emptyResultErrorMessage         = "the source returned an empty result"
+	authenticationErrorMessage      = "the source returned an authentication error"
+	invalidResponseErrorMessage     = "the source returned an invalid response"
 	errorMessageForWordSuffixFormat = " for word: %q"
 
 	contentTypeHeaderName = "Content-Type"

@@ -19,7 +19,7 @@ type writerShouldError bool
 
 func (w writerShouldError) Write(p []byte) (int, error) {
 	if bool(w) {
-		return 0, fmt.Errorf("Error during Write of bytes: %+v", p)
+		return 0, fmt.Errorf("error during Write of bytes: %+v", p)
 	}
 
 	return len(p), nil

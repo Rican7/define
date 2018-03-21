@@ -145,7 +145,7 @@ func NewFromRuntime(
 			fileConfig, err = initializeFileConfig(configFileLocation)
 
 			if nil != err {
-				err = errors.New("Error reading config file")
+				err = errors.New("error reading config file")
 			}
 		}
 	}

@@ -103,7 +103,7 @@ func TestPronunciation(t *testing.T) {
 
 func TestSenses(t *testing.T) {
 	senses := []SenseValue{
-		SenseValue{},
+		{},
 	}
 	e := DictionaryEntryValue{SenseVals: senses}
 
@@ -215,7 +215,7 @@ func TestNotes(t *testing.T) {
 
 func TestSubsenses(t *testing.T) {
 	senses := []SenseValue{
-		SenseValue{},
+		{},
 	}
 	s := SenseValue{SubsenseVals: senses}
 

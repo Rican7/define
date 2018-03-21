@@ -121,7 +121,7 @@ func (g *api) Define(word string) (source.Result, error) {
 	}
 
 	if len(result.TUC) < 1 {
-		return nil, &source.EmptyResultError{word}
+		return nil, &source.EmptyResultError{Word: word}
 	}
 
 	return source.ValidateAndReturnResult(result.toResult())

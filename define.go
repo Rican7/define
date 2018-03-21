@@ -56,7 +56,7 @@ func init() {
 	providerConfs := registry.ConfigureProviders(flags)
 
 	if len(providerConfs) < 1 {
-		handleError(fmt.Errorf("No registered source providers"))
+		handleError(fmt.Errorf("no registered source providers"))
 	}
 
 	conf, err = config.NewFromRuntime(flags, providerConfs, defaultConfigFileLocation, config.Configuration{
@@ -77,7 +77,7 @@ func init() {
 		if providerConf, ok := providerConfs[conf.PreferredSource]; ok {
 			preferredProviderConfig = providerConf
 		} else {
-			handleError(fmt.Errorf("Preferred provider/source %q does not exist", conf.PreferredSource))
+			handleError(fmt.Errorf("preferred provider/source %q does not exist", conf.PreferredSource))
 		}
 	} else {
 		for _, providerConf := range providerConfs {

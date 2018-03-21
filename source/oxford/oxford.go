@@ -263,7 +263,7 @@ func (g *api) Define(word string) (source.Result, error) {
 	defer httpResponse.Body.Close()
 
 	if http.StatusNotFound == httpResponse.StatusCode {
-		return nil, &source.EmptyResultError{word}
+		return nil, &source.EmptyResultError{Word: word}
 	}
 
 	if http.StatusForbidden == httpResponse.StatusCode {
@@ -287,7 +287,7 @@ func (g *api) Define(word string) (source.Result, error) {
 	}
 
 	if len(result.Results) < 1 {
-		return nil, &source.EmptyResultError{word}
+		return nil, &source.EmptyResultError{Word: word}
 	}
 
 	return source.ValidateAndReturnResult(result.toResult())
