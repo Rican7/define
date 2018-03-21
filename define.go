@@ -56,17 +56,16 @@ func init() {
 	// Configure our registered providers
 	providerConfs := registry.ConfigureProviders(flags)
 
-	conf, err = config.NewFromRuntime(flags, config.Configuration{
-		ConfigFileLocation: defaultConfigFileLocation,
-		IndentationSize:    defaultIndentationSize,
-		PreferredSource:    defaultPreferredSource,
-	})
-
-	handleError(err)
-
 	if len(providerConfs) < 1 {
 		handleError(fmt.Errorf("No registered source providers"))
 	}
+
+	conf, err = config.NewFromRuntime(flags, providerConfs, defaultConfigFileLocation, config.Configuration{
+		IndentationSize: defaultIndentationSize,
+		PreferredSource: defaultPreferredSource,
+	})
+
+	handleError(err)
 
 	var preferredProviderConfig registry.Configuration
 

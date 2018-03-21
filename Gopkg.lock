@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/fatih/structs"
+  packages = ["."]
+  revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
+  version = "v1.0"
+
+[[projects]]
   name = "github.com/imdario/mergo"
   packages = ["."]
   revision = "163f41321a19dd09362d4c63cc2489db2015f1f4"
@@ -22,6 +28,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f02fc9e1da59d9c8fb1e47ec772acce490f2a622c0a5d71ac4ae038525cb7a8a"
+  inputs-digest = "151e4b758ce9527ab161b9a21c04e5eecd9340766b4cc553c386ed3b57b79057"
   solver-name = "gps-cdcl"
   solver-version = 1
