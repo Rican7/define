@@ -5,6 +5,7 @@
 package registry
 
 import (
+	"sort"
 	"sync"
 
 	flag "github.com/ogier/pflag"
@@ -14,6 +15,9 @@ import (
 
 // SourceProvider defines the interface for providers of sources.
 type SourceProvider interface {
+	// Name returns a printable user-friendly name to refer to the source by.
+	Name() string
+
 	// Provide returns a source based on a given configuration.
 	Provide(Configuration) (source.Source, error)
 }
@@ -38,14 +42,14 @@ type RegisterFunc func(*flag.FlagSet) (SourceProvider, Configuration)
 
 var (
 	configured    sync.Once
-	registrations = make(map[string]RegisterFunc)
+	registrations = make([]RegisterFunc, 0)
 
-	providers = make(map[string]SourceProvider)
+	providers = make(map[Configuration]SourceProvider)
 )
 
 // Register makes a source provider available by the provided name.
-func Register(name string, registerFunc RegisterFunc) {
-	registrations[name] = registerFunc
+func Register(registerFunc RegisterFunc) {
+	registrations = append(registrations, registerFunc)
 }
 
 // ConfigureProviders configures the providers and returns a map of their names
@@ -57,26 +61,47 @@ func ConfigureProviders(flags *flag.FlagSet) map[string]Configuration {
 	confs := make(map[string]Configuration)
 
 	configured.Do(func() {
-		for name, registerFunc := range registrations {
-			providers[name], confs[name] = registerFunc(flags)
+		for _, registerFunc := range registrations {
+			provider, conf := registerFunc(flags)
+
+			if nil == provider || nil == conf {
+				panic("register func returned nil values")
+			}
+
+			providers[conf], confs[conf.JSONKey()] = provider, conf
 		}
 	})
 
 	return confs
 }
 
-// Provide TODO
-func Provide(name string, conf Configuration) (source.Source, error) {
-	return providers[name].Provide(conf)
+// Provide takes a configuration and calls the associated source providers
+// Provide function to provide a source.
+func Provide(conf Configuration) (source.Source, error) {
+	return providers[conf].Provide(conf)
 }
 
-// Providers returns a list of the names of the registered providers.
-func Providers() []string {
+// Providers returns a map of the source configurations as keys and their
+// corresponding providers as values.
+func Providers() map[Configuration]SourceProvider {
+	provs := make(map[Configuration]SourceProvider)
+
+	for conf, provider := range providers {
+		provs[conf] = provider
+	}
+
+	return provs
+}
+
+// ProviderNames returns a sorted list of the names of the registered providers.
+func ProviderNames() []string {
 	var list []string
 
-	for name := range providers {
-		list = append(list, name)
+	for _, provider := range providers {
+		list = append(list, provider.Name())
 	}
+
+	sort.Strings(list)
 
 	return list
 }

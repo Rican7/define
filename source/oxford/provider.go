@@ -30,7 +30,7 @@ type provider struct{}
 const JSONKey = "OxfordDictionary"
 
 func init() {
-	registry.Register(Name, registry.RegisterFunc(register))
+	registry.Register(registry.RegisterFunc(register))
 }
 
 func register(flags *flag.FlagSet) (registry.SourceProvider, registry.Configuration) {
@@ -57,6 +57,10 @@ func (e *RequiredConfigError) Error() string {
 
 func (c *config) JSONKey() string {
 	return JSONKey
+}
+
+func (p *provider) Name() string {
+	return Name
 }
 
 func (p *provider) Provide(conf registry.Configuration) (source.Source, error) {

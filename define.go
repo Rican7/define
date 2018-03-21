@@ -28,7 +28,7 @@ const (
 	// Configuration defaults
 	defaultConfigFileLocation = "~/.define.conf"
 	defaultIndentationSize    = 2
-	defaultPreferredSource    = oxford.Name
+	defaultPreferredSource    = oxford.JSONKey
 )
 
 var (
@@ -64,29 +64,26 @@ func init() {
 
 	handleError(err)
 
-	providers := registry.Providers()
-
-	if len(providers) < 1 {
+	if len(providerConfs) < 1 {
 		handleError(fmt.Errorf("No registered source providers"))
 	}
 
-	var provider string
+	var preferredProviderConfig registry.Configuration
 
 	if "" != conf.PreferredSource {
-		for i, providerName := range providers {
-			if providerName == conf.PreferredSource {
-				provider = providers[i]
-			}
-		}
-
-		if "" == provider {
+		if providerConf, ok := providerConfs[conf.PreferredSource]; ok {
+			preferredProviderConfig = providerConf
+		} else {
 			handleError(fmt.Errorf("Preferred provider/source %q does not exist", conf.PreferredSource))
 		}
 	} else {
-		provider = providers[0]
+		for _, providerConf := range providerConfs {
+			preferredProviderConfig = providerConf
+			break
+		}
 	}
 
-	src, err = registry.Provide(provider, providerConfs[provider])
+	src, err = registry.Provide(preferredProviderConfig)
 
 	handleError(err)
 
