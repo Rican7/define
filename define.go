@@ -20,43 +20,41 @@ import (
 	_ "github.com/Rican7/define/source/webster"
 )
 
-const appName = "define"
+const (
+	appName = "define"
 
-const defaultIndentationSize = 2
-const defaultPreferredSource = oxford.Name
+	// Configuration defaults
+	defaultConfigFileLocation = "~/.define.conf"
+	defaultIndentationSize    = 2
+	defaultPreferredSource    = oxford.Name
+)
 
-var flags *flag.FlagSet
-var conf config.Configuration
-var src source.Source
+var (
+	stdErrWriter = defineio.NewPanicWriter(os.Stderr)
+	stdOutWriter = defineio.NewPanicWriter(os.Stdout)
+
+	flags *flag.FlagSet
+	conf  config.Configuration
+	src   source.Source
+)
 
 func init() {
 	var err error
 
-	// Define a writer for our flags with a default indentation size, since we
-	// won't have access to our configuation yet
-	flagWriter := defineio.NewPanicWriter(os.Stderr)
-
 	flags = flag.NewFlagSet(appName, flag.ContinueOnError)
-	flags.SetOutput(flagWriter.IndentedWriter(defaultIndentationSize))
 	flags.Usage = func() {
-		flagWriter.IndentWrites(defaultIndentationSize, func(w *defineio.PanicWriter) {
-			w.WriteNewLine()
-			w.WriteStringLine(fmt.Sprintf("Usage of %s:", appName))
-			w.WriteNewLine()
-
-			flags.PrintDefaults()
-			w.WriteNewLine()
-
-			printAndQuit("", 2)
-		})
+		printUsage(stdErrWriter, defaultIndentationSize)
+		quit(2)
 	}
+	flags.SetOutput(stdErrWriter.Writer())
 
 	// Configure our registered providers
 	providerConfs := registry.ConfigureProviders(flags)
 
 	conf, err = config.NewFromRuntime(flags, config.Configuration{
-		IndentationSize: defaultIndentationSize,
-		PreferredSource: defaultPreferredSource,
+		ConfigFileLocation: defaultConfigFileLocation,
+		IndentationSize:    defaultIndentationSize,
+		PreferredSource:    defaultPreferredSource,
 	})
 
 	handleError(err)
@@ -92,14 +90,14 @@ func main() {
 	word := flags.Arg(0)
 
 	if "" == word {
-		handleError(fmt.Errorf("No word provided"))
+		// Show our usage
+		printUsage(stdOutWriter, conf.IndentationSize)
+		quit(1)
 	}
 
 	result, err := src.Define(word)
 
 	handleError(err, source.ValidateResult(result))
-
-	stdOutWriter := defineio.NewPanicWriter(os.Stdout)
 
 	printResult(result, stdOutWriter)
 	printSourceName(src, stdOutWriter)
@@ -108,21 +106,33 @@ func main() {
 func handleError(err ...error) {
 	for _, e := range err {
 		if nil != e {
-			printAndQuit(e.Error(), 1)
+			stdErrWriter.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
+				writer.WriteNewLine()
+				writer.WriteStringLine(e.Error())
+				writer.WriteNewLine()
+			})
+
+			quit(1)
 		}
 	}
 }
 
-func printAndQuit(msg string, code int) {
-	if "" != msg {
-		defineio.NewPanicWriter(os.Stderr).IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
-			writer.WriteNewLine()
-			writer.WriteStringLine(msg)
-			writer.WriteNewLine()
-		})
-	}
-
+func quit(code int) {
 	os.Exit(code)
+}
+
+func printUsage(writer *defineio.PanicWriter, indentSize uint) {
+	writer.IndentWrites(indentSize, func(w *defineio.PanicWriter) {
+		flags.SetOutput(w.Writer())
+
+		writer.WriteNewLine()
+		writer.WriteStringLine(fmt.Sprintf("Usage: %s [<options>...] <word>", appName))
+		writer.WriteNewLine()
+
+		writer.WriteStringLine("Options:")
+		flags.PrintDefaults()
+		writer.WriteNewLine()
+	})
 }
 
 func printSourceName(src source.Source, writer *defineio.PanicWriter) {
