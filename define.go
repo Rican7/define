@@ -122,11 +122,18 @@ func main() {
 func handleError(err ...error) {
 	for _, e := range err {
 		if nil != e {
-			stdErrWriter.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
-				writer.WriteNewLine()
-				writer.WriteStringLine(e.Error())
-				writer.WriteNewLine()
-			})
+			msg := e.Error()
+
+			if len(msg) > 1 {
+				// Format the message
+				msg = strings.ToTitle(msg[:1]) + msg[1:]
+
+				stdErrWriter.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
+					writer.WriteNewLine()
+					writer.WriteStringLine(msg)
+					writer.WriteNewLine()
+				})
+			}
 
 			quit(1)
 		}
