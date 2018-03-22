@@ -181,7 +181,7 @@ func (c Configuration) MarshalJSON() ([]byte, error) {
 
 	for _, providerConf := range c.providerConfigs {
 		// Skip nil and zero-value configs
-		if nil == providerConf || structs.IsZero(providerConf) {
+		if nil == providerConf || len(structs.Fields(providerConf)) < 1 {
 			continue
 		}
 

@@ -88,7 +88,15 @@ func init() {
 
 	src, err = registry.Provide(preferredProviderConfig)
 
-	handleError(err)
+	if nil != err {
+		handleError(
+			fmt.Errorf(
+				"source %q failed to initialize with error: %s",
+				registry.ProviderName(preferredProviderConfig),
+				err,
+			),
+		)
+	}
 
 	// Make sure our flags are parsed before entering main
 	handleError(flags.Parse(os.Args[1:]))

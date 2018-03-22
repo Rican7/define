@@ -109,6 +109,12 @@ func Provide(conf Configuration) (source.Source, error) {
 	return providers[conf].Provide(conf)
 }
 
+// ProviderName takes a configuration and returns the name of the associated
+// provider.
+func ProviderName(conf Configuration) string {
+	return providers[conf].Name()
+}
+
 // Providers returns a map of the source configurations as keys and their
 // corresponding providers as values.
 func Providers() map[Configuration]SourceProvider {
