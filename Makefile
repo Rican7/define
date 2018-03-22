@@ -63,6 +63,7 @@ build: install-deps
 
 ${BUILD_DIR}: install-deps install-deps-dev
 	gox ${GOX_BUILD_FLAGS}
+	for file in ${BUILD_DIR}/* ; do sha256sum "$${file}" > "$${file}.sha256"; done
 
 build-release: ${BUILD_DIR}
 
