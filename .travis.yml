@@ -5,6 +5,9 @@ go:
     - tip
 
 install:
+    # Install dep
+    - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
     # Get all imported packages
     - make install-deps install-deps-dev
 
