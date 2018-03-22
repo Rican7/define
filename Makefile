@@ -23,7 +23,12 @@ endif
 # Build flags
 GO_BUILD_FLAGS ?= -ldflags "${GO_LD_FLAGS}" -v
 GO_CLEAN_FLAGS ?= -i -x ${GO_BUILD_FLAGS}
-GOX_BUILD_FLAGS ?= -verbose -ldflags="${GO_LD_FLAGS}" -output="${BUILD_DIR}/{{.Dir}}_{{.OS}}_{{.Arch}}"
+
+# Compilation flags
+XC_ARCHITECTURES ?= 386 amd64 arm arm64
+XC_OPERATING_SYSTEMS ?= linux darwin windows freebsd netbsd openbsd
+XC_OSARCHS ?= !darwin/arm !darwin/arm64
+GOX_BUILD_FLAGS ?= -verbose -ldflags="${GO_LD_FLAGS}" -arch="${XC_ARCHITECTURES}" -os="${XC_OPERATING_SYSTEMS}" -osarch="${XC_OSARCHS}" -output="${BUILD_DIR}/{{.Dir}}_{{.OS}}_{{.Arch}}"
 
 # Tool flags
 GOFMT_FLAGS ?= -s
