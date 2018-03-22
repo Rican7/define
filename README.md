@@ -20,3 +20,51 @@ If you have a working Go environment, you can install via `go get`:
 ```shell
 go get github.com/Rican7/define
 ```
+
+
+## Configuration
+
+The **define** app allows configuration through multiple means. You can either set configuration via:
+
+- Command line flags (good for one-off use)
+- A configuration file (good for your "dotfiles")
+- Environment variables (especially useful for API keys)
+
+
+### Command line flags
+
+The list of command line flags is easily discovered via the `--help` flag. Any passed command line flag will take precedence over any other configuration mechanism.
+
+### Configuration file
+
+A configuration file can be stored at `~/.define.conf.json` and **define** will automatically load the values specified there.
+
+To print the default values of the configuration, simply use the `--print-config` flag. This can also be used to initialize a configuration file, for example:
+
+```shell
+define --print-config > ~/.define.conf.json
+```
+
+### Environment variables
+
+Some configuration values can also be specified via environment variables. This is especially useful for API keys of different sources.
+
+The following environment variables are read by **define**'s sources:
+
+- `MERIAM_WEBSTER_DICTIONARY_APP_KEY`
+- `OXFORD_DICTIONARY_APP_ID`
+- `OXFORD_DICTIONARY_APP_KEY`
+
+
+## Sources
+
+The **define** app has access to multiple sources, however some of them require user-specific API keys, due to usage limitations.
+
+You can specify a preferred source either via the command line flag `--preferred-source="..."` or in your configuration file. For more information, see the section on [Configuration](#configuration).
+
+### Obtaining API keys
+
+The following are links to register for API keys for the different sources:
+
+- [Merriam-Webster's Dictionary API](https://www.dictionaryapi.com/register/index.htm)
+- [Oxford Dictionaries API](https://developer.oxforddictionaries.com/?tag=#plans)
