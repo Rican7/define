@@ -25,7 +25,7 @@ import (
 
 const (
 	// Configuration defaults
-	defaultConfigFileLocation = "~/.define.conf"
+	defaultConfigFileLocation = "~/.define.conf.json"
 	defaultIndentationSize    = 2
 	defaultPreferredSource    = oxford.JSONKey
 )
