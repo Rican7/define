@@ -18,8 +18,8 @@ import (
 	"github.com/Rican7/define/source"
 	flag "github.com/ogier/pflag"
 
-	_ "github.com/Rican7/define/source/glosbe"
-	"github.com/Rican7/define/source/oxford"
+	"github.com/Rican7/define/source/glosbe"
+	_ "github.com/Rican7/define/source/oxford"
 	_ "github.com/Rican7/define/source/webster"
 )
 
@@ -27,7 +27,7 @@ const (
 	// Configuration defaults
 	defaultConfigFileLocation = "~/.define.conf.json"
 	defaultIndentationSize    = 2
-	defaultPreferredSource    = oxford.JSONKey
+	defaultPreferredSource    = glosbe.JSONKey
 )
 
 var (
