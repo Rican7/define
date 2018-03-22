@@ -49,24 +49,24 @@ func (w *PanicWriter) WriteString(p string) int {
 	return w.WriteBytes([]byte(p))
 }
 
-// FWrite writes the given args to the writer like fmt.Sprint(), and returns
+// Print writes the given args to the writer like fmt.Sprint(), and returns
 // the number of bytes that were written. It'll panic if any error occurs
 // during writing.
-func (w *PanicWriter) FWrite(p ...interface{}) int {
+func (w *PanicWriter) Print(p ...interface{}) int {
 	return w.WriteString(fmt.Sprint(p...))
 }
 
-// FWritef writes the given args to the writer like fmt.Sprintf(), and returns
+// Printf writes the given args to the writer like fmt.Sprintf(), and returns
 // the number of bytes that were written. It'll panic if any error occurs
 // during writing.
-func (w *PanicWriter) FWritef(format string, p ...interface{}) int {
+func (w *PanicWriter) Printf(format string, p ...interface{}) int {
 	return w.WriteString(fmt.Sprintf(format, p...))
 }
 
-// FWriteln writes the given args to the writer like fmt.Sprintln(), and returns
+// Println writes the given args to the writer like fmt.Sprintln(), and returns
 // the number of bytes that were written. It'll panic if any error occurs
 // during writing.
-func (w *PanicWriter) FWriteln(p ...interface{}) int {
+func (w *PanicWriter) Println(p ...interface{}) int {
 	return w.WriteString(fmt.Sprintln(p...))
 }
 

@@ -117,7 +117,7 @@ func TestWriteString(t *testing.T) {
 	}
 }
 
-func TestFWrite(t *testing.T) {
+func TestPrint(t *testing.T) {
 	toWrite := []interface{}{1, true}
 	expectedString := fmt.Sprint(toWrite...)
 	want := len(expectedString)
@@ -125,11 +125,11 @@ func TestFWrite(t *testing.T) {
 	w := &strings.Builder{}
 	pw := &PanicWriter{inner: w}
 
-	got := pw.FWrite(toWrite...)
+	got := pw.Print(toWrite...)
 
 	if got != want || got != w.Len() {
 		t.Errorf(
-			"FWrite didn't write the expected number of bytes. Got %d. Want %d.",
+			"Print didn't write the expected number of bytes. Got %d. Want %d.",
 			got,
 			want,
 		)
@@ -144,7 +144,7 @@ func TestFWrite(t *testing.T) {
 	}
 }
 
-func TestFWritef(t *testing.T) {
+func TestPrintf(t *testing.T) {
 	format := "%d %v"
 	toWrite := []interface{}{1, true}
 	expectedString := fmt.Sprintf(format, toWrite...)
@@ -153,11 +153,11 @@ func TestFWritef(t *testing.T) {
 	w := &strings.Builder{}
 	pw := &PanicWriter{inner: w}
 
-	got := pw.FWritef(format, toWrite...)
+	got := pw.Printf(format, toWrite...)
 
 	if got != want || got != w.Len() {
 		t.Errorf(
-			"FWritef didn't write the expected number of bytes. Got %d. Want %d.",
+			"Printf didn't write the expected number of bytes. Got %d. Want %d.",
 			got,
 			want,
 		)
@@ -172,7 +172,7 @@ func TestFWritef(t *testing.T) {
 	}
 }
 
-func TestFWriteln(t *testing.T) {
+func TestPrintln(t *testing.T) {
 	toWrite := []interface{}{1, true}
 	expectedString := fmt.Sprintln(toWrite...)
 	want := len(expectedString)
@@ -180,11 +180,11 @@ func TestFWriteln(t *testing.T) {
 	w := &strings.Builder{}
 	pw := &PanicWriter{inner: w}
 
-	got := pw.FWriteln(toWrite...)
+	got := pw.Println(toWrite...)
 
 	if got != want || got != w.Len() {
 		t.Errorf(
-			"FWriteln didn't write the expected number of bytes. Got %d. Want %d.",
+			"Println didn't write the expected number of bytes. Got %d. Want %d.",
 			got,
 			want,
 		)
