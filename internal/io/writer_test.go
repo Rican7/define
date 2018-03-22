@@ -12,7 +12,7 @@ import (
 
 // Enforce interface contracts
 var (
-	_ io.Writer = (*PanicWriterWriter)(nil)
+	_ io.Writer = (*PanicWriter)(nil)
 )
 
 type writerShouldError bool
@@ -40,7 +40,7 @@ func TestWrite(t *testing.T) {
 	w := &strings.Builder{}
 	pw := &PanicWriter{inner: w}
 
-	got := pw.Write(toWrite)
+	got := pw.WriteBytes(toWrite)
 
 	if got != want || got != w.Len() || w.String() != string(toWrite) {
 		t.Errorf(
@@ -60,7 +60,7 @@ func TestWriteWithSpaces(t *testing.T) {
 	w := &strings.Builder{}
 	pw := &PanicWriter{inner: w, spaces: uint(numSpaces)}
 
-	got := pw.Write(toWrite)
+	got := pw.WriteBytes(toWrite)
 
 	if got != want || got != w.Len() {
 		t.Errorf(
@@ -88,7 +88,7 @@ func TestWritePanicsOnError(t *testing.T) {
 
 	pw := &PanicWriter{inner: writerShouldError(true)}
 
-	pw.Write([]byte(""))
+	pw.WriteBytes([]byte(""))
 }
 
 func TestWriteString(t *testing.T) {
@@ -288,40 +288,6 @@ func TestIndentWrites(t *testing.T) {
 	})
 }
 
-func TestIndentedWriter(t *testing.T) {
-	indentSize := uint(2)
-
-	pw := &PanicWriter{inner: &strings.Builder{}}
-
-	if 0 != pw.spaces {
-		t.Errorf(
-			"Writer has incorrect indent size. Got %d. Want %d.",
-			pw.spaces,
-			0,
-		)
-	}
-
-	w := pw.IndentedWriter(indentSize).(*PanicWriterWriter)
-
-	if indentSize != (*PanicWriter)(w).spaces {
-		t.Errorf(
-			"Writer has incorrect indent size. Got %d. Want %d.",
-			(*PanicWriter)(w).spaces,
-			indentSize,
-		)
-	}
-}
-
-func TestWriter(t *testing.T) {
-	pw := &PanicWriter{inner: &strings.Builder{}}
-
-	w := pw.Writer()
-
-	if _, ok := w.(io.Writer); !ok {
-		t.Errorf("Writer can't be asserted as an io.Writer")
-	}
-}
-
 func TestIndented(t *testing.T) {
 	indentSize := uint(2)
 
@@ -343,27 +309,5 @@ func TestIndented(t *testing.T) {
 			w.spaces,
 			indentSize,
 		)
-	}
-}
-
-func TestPanicWriterWriterWrite(t *testing.T) {
-	toWrite := []byte("test")
-	want := len(toWrite)
-
-	w := &strings.Builder{}
-	pw := (*PanicWriterWriter)(&PanicWriter{inner: w})
-
-	got, err := pw.Write(toWrite)
-
-	if got != want || got != w.Len() || w.String() != string(toWrite) {
-		t.Errorf(
-			"Write didn't write the expected number of bytes. Got %d. Want %d.",
-			got,
-			want,
-		)
-	}
-
-	if nil != err {
-		t.Errorf("Write returned an error when not expected. Got %#v.", err)
 	}
 }

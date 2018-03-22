@@ -48,7 +48,7 @@ func init() {
 		printUsage(stdErrWriter, defaultIndentationSize)
 		quit(2)
 	}
-	flags.SetOutput(stdErrWriter.Writer())
+	flags.SetOutput(stdErrWriter)
 
 	act = action.Setup(flags)
 
@@ -180,7 +180,7 @@ func printVersion() {
 
 func printUsage(writer *defineio.PanicWriter, indentSize uint) {
 	writer.IndentWrites(indentSize, func(w *defineio.PanicWriter) {
-		flags.SetOutput(w.Writer())
+		flags.SetOutput(w)
 
 		writer.WriteNewLine()
 		writer.WriteStringLine(fmt.Sprintf("Usage: %s [<options>...] <word>", version.AppName))
