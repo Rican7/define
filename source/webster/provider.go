@@ -41,7 +41,7 @@ func initConfig(flags *flag.FlagSet) *config {
 	conf := &config{}
 
 	// Define our flags
-	flags.StringVar(&conf.AppKey, "meriam-webster-dictionary-app-key", "", fmt.Sprintf("The app key for the %s", Name))
+	flags.StringVar(&conf.AppKey, "merriam-webster-dictionary-app-key", "", fmt.Sprintf("The app key for the %s", Name))
 
 	return conf
 }
@@ -76,7 +76,7 @@ func (c *config) UnmarshalJSON(data []byte) error {
 
 func (c *config) Finalize() {
 	if "" == c.AppKey {
-		c.AppKey = os.Getenv("MERIAM_WEBSTER_DICTIONARY_APP_KEY")
+		c.AppKey = os.Getenv("MERRIAM_WEBSTER_DICTIONARY_APP_KEY")
 	}
 }
 
