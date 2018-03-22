@@ -4,6 +4,7 @@ COMMIT_HASH = $(shell git rev-parse --short HEAD)
 
 # Define directories
 ROOT_DIR ?= ${CURDIR}
+BUILD_DIR ?= ${ROOT_DIR}/.tmpbuild
 VENDOR_DIR ?= ${ROOT_DIR}/vendor
 GOPATH_FIRST ?= $(word 1, $(subst :, , ${GOPATH}))
 GOBIN ?= ${GOPATH_FIRST}/bin
@@ -22,6 +23,7 @@ endif
 # Build flags
 GO_BUILD_FLAGS ?= -ldflags "${GO_LD_FLAGS}" -v
 GO_CLEAN_FLAGS ?= -i -x ${GO_BUILD_FLAGS}
+GOX_BUILD_FLAGS ?= -verbose -ldflags="${GO_LD_FLAGS}" -output="${BUILD_DIR}/{{.Dir}}_{{.OS}}_{{.Arch}}"
 
 # Tool flags
 GOFMT_FLAGS ?= -s
@@ -29,6 +31,9 @@ GOIMPORTS_FLAGS ?=
 GOLINT_MIN_CONFIDENCE ?= 0.3
 
 # Validate
+ifndef BUILD_DIR
+$(error BUILD_DIR must be set and non-empty)
+endif
 ifndef GOBIN
 $(error GOBIN must be set and non-empty)
 endif
@@ -45,8 +50,16 @@ clean-deps:
 clean: clean-deps
 	go clean ${GO_CLEAN_FLAGS} ./...
 
+clean-release: clean
+	rm -rf ${BUILD_DIR}
+
 build: install-deps
 	go build ${GO_BUILD_FLAGS}
+
+${BUILD_DIR}: install-deps install-deps-dev
+	gox ${GOX_BUILD_FLAGS}
+
+build-release: ${BUILD_DIR}
 
 install: install-deps
 	go install ${GO_BUILD_FLAGS}
@@ -59,6 +72,7 @@ install-deps: check-dep | ${VENDOR_DIR}
 install-deps-dev: install-deps
 	go get github.com/golang/lint/golint
 	go get golang.org/x/tools/cmd/goimports
+	go get github.com/mitchellh/gox
 
 update-deps: check-dep
 	dep ensure -update
@@ -66,6 +80,7 @@ update-deps: check-dep
 update-deps-dev: update-deps
 	go get -u github.com/golang/lint/golint
 	go get -u golang.org/x/tools/cmd/goimports
+	go get -u github.com/mitchellh/gox
 
 test: install-deps
 	go test -v ./...
@@ -97,4 +112,4 @@ vet:
 	go vet ./...
 
 
-.PHONY: all check-dep clean-deps clean build install install-deps install-deps-dev update-deps update-deps-dev test test-with-coverage format-lint import-lint style-lint lint format-fix import-fix fix vet
+.PHONY: all check-dep clean-deps clean clean-release build build-release install install-deps install-deps-dev update-deps update-deps-dev test test-with-coverage format-lint import-lint style-lint lint format-fix import-fix fix vet

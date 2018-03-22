@@ -1,2 +1,5 @@
 # Vendor Directory
 /vendor
+
+# Build Directory
+/.tmpbuild
