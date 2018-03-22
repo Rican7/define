@@ -1,7 +1,7 @@
 # define
 
 [![Build Status](https://travis-ci.org/Rican7/define.svg?branch=master)](https://travis-ci.org/Rican7/define)
-[![Go Report Card](https://goreportcard.com/badge/Rican7/define)](http://goreportcard.com/report/Rican7/define)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Rican7/define)](https://goreportcard.com/report/github.com/Rican7/define)
 [![Latest Stable Version](https://img.shields.io/github/release/Rican7/define.svg?style=flat)](https://github.com/Rican7/define/releases)
 
 A command-line dictionary (thesaurus) app, with access to multiple sources, written in Go.
