@@ -47,7 +47,7 @@ func initConfig(flags *flag.FlagSet) *config {
 }
 
 func (e *RequiredConfigError) Error() string {
-	return fmt.Sprintf("Required configuration key %q is missing", e.Key)
+	return fmt.Sprintf("required configuration key %q is missing", e.Key)
 }
 
 func (c *config) JSONKey() string {
