@@ -14,12 +14,13 @@ import (
 type PanicWriter struct {
 	inner io.Writer
 
-	spaces uint
+	indentStepSize uint
+	spaces         uint
 }
 
 // NewPanicWriter returns a new PanicWriter based on a wrapped io.Writer.
-func NewPanicWriter(writer io.Writer) *PanicWriter {
-	return &PanicWriter{inner: writer}
+func NewPanicWriter(writer io.Writer, indentStepSize uint) *PanicWriter {
+	return &PanicWriter{inner: writer, indentStepSize: indentStepSize}
 }
 
 // Write satisfies the io.Writer interface.
@@ -84,17 +85,45 @@ func (w *PanicWriter) WriteStringLine(p string) int {
 	return w.WriteString(p) + w.WriteNewLine()
 }
 
-// IndentWrites takes a number of spaces and a callback where all writes made in
-// the callback are indented by the given space number. If the current writer is
-// already indented, the number of spaces will be additive to the current number
-// of contextual spaces.
-func (w *PanicWriter) IndentWrites(spaces uint, writesFunc func(*PanicWriter)) {
+// WritePaddedStringLine writes a given number of blank lines before and after
+// a given string (on its own line) to the writer, and returns the number of
+// bytes that were written. It'll panic if any error occurs during writing.
+func (w *PanicWriter) WritePaddedStringLine(p string, padding uint) int {
+	return w.writeLines(padding) + w.WriteStringLine(p) + w.writeLines(padding)
+}
+
+// IndentWrites takes a callback where all writes made in the callback are
+// indented by the writer's indentation number. If the current writer is already
+// indented, the number of spaces will be additive to the current number of
+// contextual spaces.
+func (w *PanicWriter) IndentWrites(writesFunc func(*PanicWriter)) {
+	writesFunc(w.indented(w.indentStepSize))
+}
+
+// IndentWritesBy takes a number of spaces and a callback where all writes made
+// in the callback are indented by the given space number. If the current
+// writer is already indented, the number of spaces will be additive to the
+// current number of contextual spaces.
+func (w *PanicWriter) IndentWritesBy(spaces uint, writesFunc func(*PanicWriter)) {
 	writesFunc(w.indented(spaces))
+}
+
+// writeLines writes a given number of blank lines to the writer, and returns
+// the number of bytes that were written. It'll panic if any error occurs
+// during writing.
+func (w *PanicWriter) writeLines(num uint) int {
+	var totalBytes int
+
+	for i := 0; i < int(num); i++ {
+		totalBytes += w.WriteNewLine()
+	}
+
+	return totalBytes
 }
 
 // indented returns a PanicWriter with a number of spaces to indent all writes.
 // If the current writer is already indented, the number of spaces will be
 // additive to the current number of contextual spaces.
 func (w *PanicWriter) indented(spaces uint) *PanicWriter {
-	return &PanicWriter{w.inner, w.spaces + spaces}
+	return &PanicWriter{inner: w.inner, indentStepSize: w.indentStepSize, spaces: w.spaces + spaces}
 }

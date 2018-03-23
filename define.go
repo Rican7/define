@@ -31,8 +31,8 @@ const (
 )
 
 var (
-	stdErrWriter = defineio.NewPanicWriter(os.Stderr)
-	stdOutWriter = defineio.NewPanicWriter(os.Stdout)
+	stdErrWriter = defineio.NewPanicWriter(os.Stderr, defaultIndentationSize)
+	stdOutWriter = defineio.NewPanicWriter(os.Stdout, defaultIndentationSize)
 
 	flags *flag.FlagSet
 	act   *action.Action
@@ -44,11 +44,11 @@ func init() {
 	var err error
 
 	flags = flag.NewFlagSet(version.AppName, flag.ContinueOnError)
+	flags.SetOutput(stdErrWriter)
 	flags.Usage = func() {
-		printUsage(stdErrWriter, defaultIndentationSize)
+		printUsage(stdErrWriter)
 		quit(2)
 	}
-	flags.SetOutput(stdErrWriter)
 
 	act = action.Setup(flags)
 
@@ -63,6 +63,11 @@ func init() {
 		IndentationSize: defaultIndentationSize,
 		PreferredSource: defaultPreferredSource,
 	})
+
+	// Re-initialize our writers once we have our indentation size configuration
+	stdErrWriter = defineio.NewPanicWriter(os.Stderr, conf.IndentationSize)
+	stdOutWriter = defineio.NewPanicWriter(os.Stdout, conf.IndentationSize)
+	flags.SetOutput(stdErrWriter)
 
 	// Finalize our configurations
 	for _, providerConf := range providerConfs {
@@ -111,10 +116,8 @@ func handleError(err ...error) {
 				// Format the message
 				msg = strings.ToTitle(msg[:1]) + msg[1:]
 
-				stdErrWriter.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
-					writer.WriteNewLine()
-					writer.WriteStringLine(msg)
-					writer.WriteNewLine()
+				stdErrWriter.IndentWrites(func(writer *defineio.PanicWriter) {
+					writer.WritePaddedStringLine(msg, 1)
 				})
 			}
 
@@ -136,10 +139,8 @@ func printConfig() {
 }
 
 func printSources() {
-	stdOutWriter.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
-		writer.WriteNewLine()
-		writer.WriteStringLine("Available sources:")
-		writer.WriteNewLine()
+	stdOutWriter.IndentWrites(func(writer *defineio.PanicWriter) {
+		writer.WritePaddedStringLine("Available sources:", 1)
 
 		for i, source := range registry.ProviderNames() {
 			writer.WriteStringLine(fmt.Sprintf("%d. %q", i+1, source))
@@ -153,17 +154,15 @@ func printVersion() {
 	stdOutWriter.WriteStringLine(version.Printable())
 }
 
-func printUsage(writer *defineio.PanicWriter, indentSize uint) {
-	writer.IndentWrites(indentSize, func(w *defineio.PanicWriter) {
+func printUsage(writer *defineio.PanicWriter) {
+	writer.IndentWrites(func(w *defineio.PanicWriter) {
 		flags.SetOutput(w)
 
-		writer.WriteNewLine()
-		writer.WriteStringLine(fmt.Sprintf("Usage: %s [<options>...] <word>", version.AppName))
-		writer.WriteNewLine()
+		w.WritePaddedStringLine(fmt.Sprintf("Usage: %s [<options>...] <word>", version.AppName), 1)
 
-		writer.WriteStringLine("Options:")
+		w.WriteStringLine("Options:")
 		flags.PrintDefaults()
-		writer.WriteNewLine()
+		w.WriteNewLine()
 	})
 }
 
@@ -172,7 +171,7 @@ func defineWord(word string) {
 
 	handleError(err, source.ValidateResult(result))
 
-	resultPrinter := printer.NewResultPrinter(stdOutWriter, conf.IndentationSize)
+	resultPrinter := printer.NewResultPrinter(stdOutWriter)
 
 	resultPrinter.PrintResult(result)
 	resultPrinter.PrintSourceName(src)
@@ -195,7 +194,7 @@ func main() {
 	default:
 		if "" == word {
 			// Show our usage
-			printUsage(stdOutWriter, conf.IndentationSize)
+			printUsage(stdOutWriter)
 			quit(1)
 		} else {
 			defineWord(word)

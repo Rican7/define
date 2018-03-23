@@ -26,7 +26,7 @@ func (w writerShouldError) Write(p []byte) (int, error) {
 }
 
 func TestNewPanicWriter(t *testing.T) {
-	pw := NewPanicWriter(&strings.Builder{})
+	pw := NewPanicWriter(&strings.Builder{}, 0)
 
 	if nil == pw {
 		t.Errorf("NewPanicWriter returned nil")
@@ -252,7 +252,72 @@ func TestWriteStringLine(t *testing.T) {
 	}
 }
 
+func TestWritePaddedStringLine(t *testing.T) {
+	toWrite := "test"
+	padding := uint(3)
+	expectedPaddingString := strings.Repeat("\n", int(padding))
+	expectedString := expectedPaddingString + toWrite + "\n" + expectedPaddingString
+	want := len(expectedString)
+
+	w := &strings.Builder{}
+	pw := &PanicWriter{inner: w}
+
+	got := pw.WritePaddedStringLine(toWrite, padding)
+
+	if got != want || got != w.Len() {
+		t.Errorf(
+			"WritePaddedStringLine didn't write the expected number of bytes. Got %d. Want %d.",
+			got,
+			want,
+		)
+	}
+
+	if w.String() != expectedString {
+		t.Errorf(
+			"Writer didn't write the expected string. Got %q. Want %q.",
+			w.String(),
+			expectedString,
+		)
+	}
+}
+
 func TestIndentWrites(t *testing.T) {
+	indentSize := uint(2)
+
+	w := &strings.Builder{}
+	pw := &PanicWriter{inner: w, indentStepSize: indentSize}
+
+	if 0 != pw.spaces {
+		t.Errorf(
+			"Writer has incorrect indent size. Got %d. Want %d.",
+			pw.spaces,
+			0,
+		)
+	}
+
+	pw.IndentWrites(func(pw *PanicWriter) {
+		if indentSize != pw.spaces {
+			t.Errorf(
+				"Writer has incorrect indent size. Got %d. Want %d.",
+				pw.spaces,
+				indentSize,
+			)
+		}
+
+		// Test multi-level (nested) indenting
+		pw.IndentWrites(func(pw *PanicWriter) {
+			if indentSize+indentSize != pw.spaces {
+				t.Errorf(
+					"Writer has incorrect indent size. Got %d. Want %d.",
+					pw.spaces,
+					indentSize,
+				)
+			}
+		})
+	})
+}
+
+func TestIndentWritesBy(t *testing.T) {
 	indentSize := uint(2)
 
 	w := &strings.Builder{}
@@ -266,7 +331,7 @@ func TestIndentWrites(t *testing.T) {
 		)
 	}
 
-	pw.IndentWrites(indentSize, func(pw *PanicWriter) {
+	pw.IndentWritesBy(indentSize, func(pw *PanicWriter) {
 		if indentSize != pw.spaces {
 			t.Errorf(
 				"Writer has incorrect indent size. Got %d. Want %d.",
@@ -276,7 +341,7 @@ func TestIndentWrites(t *testing.T) {
 		}
 
 		// Test multi-level (nested) indenting
-		pw.IndentWrites(indentSize, func(pw *PanicWriter) {
+		pw.IndentWritesBy(indentSize, func(pw *PanicWriter) {
 			if indentSize+indentSize != pw.spaces {
 				t.Errorf(
 					"Writer has incorrect indent size. Got %d. Want %d.",
@@ -286,6 +351,33 @@ func TestIndentWrites(t *testing.T) {
 			}
 		})
 	})
+}
+
+func TestWriteLines(t *testing.T) {
+	padding := uint(3)
+	expectedString := strings.Repeat("\n", int(padding))
+	want := len(expectedString)
+
+	w := &strings.Builder{}
+	pw := &PanicWriter{inner: w}
+
+	got := pw.writeLines(padding)
+
+	if got != want || got != w.Len() {
+		t.Errorf(
+			"writeLines didn't write the expected number of bytes. Got %d. Want %d.",
+			got,
+			want,
+		)
+	}
+
+	if w.String() != expectedString {
+		t.Errorf(
+			"Writer didn't write the expected string. Got %q. Want %q.",
+			w.String(),
+			expectedString,
+		)
+	}
 }
 
 func TestIndented(t *testing.T) {
