@@ -132,7 +132,11 @@ func ProvidePreferred(preferredProvider string, confs []Configuration) (source.S
 
 	for _, providerConf := range confs {
 		if src == nil || nil != err || preferredProvider == providerConf.JSONKey() {
-			src, err = Provide(providerConf)
+			iSrc, iErr := Provide(providerConf)
+
+			if nil != iSrc && nil == iErr {
+				src, err = iSrc, iErr
+			}
 		}
 	}
 
