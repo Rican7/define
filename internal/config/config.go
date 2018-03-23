@@ -32,15 +32,15 @@ type Configuration struct {
 }
 
 // initializeCommandLineConfig initializes the command line configuration.
-func initializeCommandLineConfig(flags *flag.FlagSet, defaults Configuration) *Configuration {
+func initializeCommandLineConfig(flags *flag.FlagSet) *Configuration {
 	var conf Configuration
 
 	// Define our flags
-	flags.StringVarP(&conf.configFileLocation, "config-file", "c", defaults.configFileLocation, "The location of the config file to use")
-	flags.BoolVar(&conf.noConfigFile, "no-config-file", defaults.noConfigFile, "To not load any config file")
-	flags.UintVar(&conf.IndentationSize, "indent-size", defaults.IndentationSize, "The number of spaces to indent output by")
-	flags.StringVar(&conf.PreferredSource, "preferred-source", defaults.PreferredSource, "The preferred source to use, if available and able to be provided")
-	flags.StringVarP(&conf.Source, "source", "s", defaults.Source, "The source to use (will error if unavailable or unable to be provided)")
+	flags.StringVarP(&conf.configFileLocation, "config-file", "c", "", "The location of the config file to use")
+	flags.BoolVar(&conf.noConfigFile, "no-config-file", false, "To not load any config file")
+	flags.UintVar(&conf.IndentationSize, "indent-size", 0, "The number of spaces to indent output by")
+	flags.StringVar(&conf.PreferredSource, "preferred-source", "", "The preferred source to use, if available and able to be provided")
+	flags.StringVarP(&conf.Source, "source", "s", "", "The source to use (will error if unavailable or unable to be provided)")
 
 	return &conf
 }
@@ -128,7 +128,7 @@ func NewFromRuntime(
 	// Set our config file location
 	defaults.configFileLocation = tryExpandPath(defaultConfigFileLocation)
 
-	commandLineConfig := initializeCommandLineConfig(flags, defaults)
+	commandLineConfig := initializeCommandLineConfig(flags)
 
 	// Parse our flag set, as we need the values from the commandLineConfig
 	err = flags.Parse(os.Args[1:])
