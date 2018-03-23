@@ -15,6 +15,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/microcosm-cc/bluemonday"
+  packages = ["."]
+  revision = "542fd4642604d0d0c26112396ce5b1a9d01eee0b"
+
+[[projects]]
+  branch = "master"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
   revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
@@ -25,9 +31,18 @@
   packages = ["."]
   revision = "45c278ab3607870051a2ea9040bb85fcb8557481"
 
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/net"
+  packages = [
+    "html",
+    "html/atom"
+  ]
+  revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "151e4b758ce9527ab161b9a21c04e5eecd9340766b4cc553c386ed3b57b79057"
+  inputs-digest = "312b564ceb7e078ac218213d71bfedb2d7e8fa5deff486e3c9f29a1baea08632"
   solver-name = "gps-cdcl"
   solver-version = 1

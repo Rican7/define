@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Rican7/define/source"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // Name defines the name of the source
@@ -32,6 +33,19 @@ var apiURL *url.URL
 
 // validMIMETypes is the list of valid response MIME types
 var validMIMETypes = []string{jsonMIMEType}
+
+// htmlCleaner is used to clean the strings returned from the API
+var htmlCleaner = bluemonday.StrictPolicy()
+
+// stringCleaner is used to clean the strings returned from the API
+var stringCleaner *strings.Replacer
+
+// itemsToClean is a list of itemsto clean/remove from the strings returned
+// from the API
+var itemsToClean = []string{
+	"[i]",
+	"[/i]",
+}
 
 // api is a struct containing a configured HTTP client for Glosbe API operations
 type api struct {
@@ -71,6 +85,14 @@ func init() {
 	if nil != err {
 		panic(err)
 	}
+
+	stringCleanerPairs := make([]string, len(itemsToClean)*2)
+
+	for _, items := range itemsToClean {
+		stringCleanerPairs = append(stringCleanerPairs, []string{items, ""}...)
+	}
+
+	stringCleaner = strings.NewReplacer(stringCleanerPairs...)
 }
 
 // New returns a new Glosbe API dictionary source
@@ -141,7 +163,9 @@ func (r apiResult) toResult() source.Result {
 		// phrase, or their phrase matches the looked-up phrase
 		if nil == item.Phrase || strings.EqualFold(item.Phrase.Text, r.Phrase) {
 			for _, meaning := range item.Meanings {
-				sense := source.SenseValue{DefinitionVals: []string{meaning.Text}}
+				definition := sanitize(meaning.Text)
+
+				sense := source.SenseValue{DefinitionVals: []string{definition}}
 
 				senses = append(senses, sense)
 			}
@@ -157,4 +181,12 @@ func (r apiResult) toResult() source.Result {
 		Lang:      r.Dest,
 		EntryVals: []interface{}{entry},
 	}
+}
+
+// sanitize cleans a string of any formatting identifiers or markup
+func sanitize(str string) string {
+	str = htmlCleaner.Sanitize(str)
+	str = stringCleaner.Replace(str)
+
+	return str
 }

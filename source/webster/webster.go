@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/Rican7/define/source"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // Name defines the name of the source
@@ -50,42 +51,8 @@ var apiURL *url.URL
 // validMIMETypes is the list of valid response MIME types
 var validMIMETypes = []string{xmlMIMEType, xmlTextMIMEType, xmlBaseMIMEType}
 
-// stringCleaner is used to clean the strings returned from the API
-// TODO: Replace with an HTML entities cleaner?
-var stringCleaner *strings.Replacer
-
-// tagsToClean is a list of HTML tags (start and end) to clean/remove from the
-// strings returned from the API
-var tagsToClean = []string{
-	"<it>",
-	"</it>",
-	"<fw>",
-	"</fw>",
-	"<d_link>",
-	"</d_link>",
-	"<dx>",
-	"</dx>",
-	"<dxt>",
-	"</dxt>",
-	"<sx>",
-	"</sx>",
-	"<ca>",
-	"</ca>",
-	"<cat>",
-	"</cat>",
-	"<g>",
-	"</g>",
-	"<un>",
-	"</un>",
-	"<vi>",
-	"</vi>",
-	"<aq>",
-	"</aq>",
-	"<sxn>",
-	"</sxn>",
-	"<dxn>",
-	"</dxn>",
-}
+// htmlCleaner is used to clean the strings returned from the API
+var htmlCleaner = bluemonday.StrictPolicy()
 
 // etymologyMetaStripperRegex is a regular expression for stripping meta from
 // etymology entries
@@ -182,14 +149,6 @@ func init() {
 	if nil != err {
 		panic(err)
 	}
-
-	stringCleanerPairs := make([]string, len(tagsToClean)*2)
-
-	for _, tag := range tagsToClean {
-		stringCleanerPairs = append(stringCleanerPairs, []string{tag, ""}...)
-	}
-
-	stringCleaner = strings.NewReplacer(stringCleanerPairs...)
 }
 
 // New returns a new Webster API dictionary source
@@ -377,7 +336,7 @@ func (dt *apiDefiningText) UnmarshalXML(d *xml.Decoder, start xml.StartElement) 
 
 	// Clean our cross references
 	for i, crossReference := range dt.CrossReferences {
-		crossReference = stringCleaner.Replace(crossReference)
+		crossReference = htmlCleaner.Sanitize(crossReference)
 		crossReference = strings.TrimSpace(crossReference)
 		crossReference = strings.TrimLeft(crossReference, definingTextPrefix)
 
@@ -490,8 +449,8 @@ func (s *cleanableString) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 	s.cleaned = s.Raw
 
 	// Clean our raw string
+	s.cleaned = htmlCleaner.Sanitize(s.cleaned)
 	s.cleaned = html.UnescapeString(s.cleaned)
-	s.cleaned = stringCleaner.Replace(s.cleaned)
 	s.cleaned = strings.TrimSpace(s.cleaned)
 
 	return err
