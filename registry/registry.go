@@ -6,7 +6,8 @@ package registry
 
 import (
 	"encoding/json"
-	"sort"
+	"errors"
+	"fmt"
 	"sync"
 
 	flag "github.com/ogier/pflag"
@@ -106,13 +107,36 @@ func Finalize(confs ...Configuration) {
 // Provide takes a configuration and calls the associated source providers
 // Provide function to provide a source.
 func Provide(conf Configuration) (source.Source, error) {
-	return providers[conf].Provide(conf)
+	provider := providers[conf]
+
+	src, err := provider.Provide(conf)
+
+	if nil != err {
+		err = fmt.Errorf("source %q failed to initialize with error: %s", provider.Name(), err)
+	}
+
+	return src, err
 }
 
-// ProviderName takes a configuration and returns the name of the associated
-// provider.
-func ProviderName(conf Configuration) string {
-	return providers[conf].Name()
+// ProvidePreferred takes a preferred provider key (that aligns with the value
+// returned by the Configuration.JSONKey method) and a list of configurations,
+// and provides the matching source if possible, but will fall back to another
+// source if the preferred source returns an error when trying to provide it.
+func ProvidePreferred(preferredProvider string, confs []Configuration) (source.Source, error) {
+	var src source.Source
+	var err error
+
+	if len(confs) < 1 {
+		return nil, errors.New("no configurations available to provide a source")
+	}
+
+	for _, providerConf := range confs {
+		if src == nil || nil != err || preferredProvider == providerConf.JSONKey() {
+			src, err = Provide(providerConf)
+		}
+	}
+
+	return src, err
 }
 
 // Providers returns a map of the source configurations as keys and their

@@ -54,9 +54,14 @@ func init() {
 
 	// Configure our registered providers
 	providerConfs := registry.ConfigureProviders(flags)
+	var providerConfsList []registry.Configuration
 
 	if len(providerConfs) < 1 {
 		handleError(fmt.Errorf("no registered source providers"))
+	}
+
+	for _, providerConf := range providerConfs {
+		providerConfsList = append(providerConfsList, providerConf)
 	}
 
 	conf, err = config.NewFromRuntime(flags, providerConfs, defaultConfigFileLocation, config.Configuration{
@@ -70,41 +75,22 @@ func init() {
 	flags.SetOutput(stdErrWriter)
 
 	// Finalize our configurations
-	for _, providerConf := range providerConfs {
-		registry.Finalize(providerConf)
-	}
+	registry.Finalize(providerConfsList...)
 
 	handleError(err)
 
-	var preferredProviderConfig registry.Configuration
-
-	if "" != conf.PreferredSource {
-		if providerConf, ok := providerConfs[conf.PreferredSource]; ok {
-			preferredProviderConfig = providerConf
+	if "" != conf.Source {
+		if providerConf, exists := providerConfs[conf.Source]; exists {
+			src, err = registry.Provide(providerConf)
 		} else {
-			handleError(fmt.Errorf("preferred provider/source %q does not exist", conf.PreferredSource))
+			handleError(fmt.Errorf("provider/source %q does not exist", conf.Source))
 		}
 	} else {
-		for _, providerConf := range providerConfs {
-			preferredProviderConfig = providerConf
-			break
-		}
-	}
-
-	src, err = registry.Provide(preferredProviderConfig)
-
-	if nil != err {
-		handleError(
-			fmt.Errorf(
-				"source %q failed to initialize with error: %s",
-				registry.ProviderName(preferredProviderConfig),
-				err,
-			),
-		)
+		src, err = registry.ProvidePreferred(conf.PreferredSource, providerConfsList)
 	}
 
 	// Make sure our flags are parsed before entering main
-	handleError(flags.Parse(os.Args[1:]))
+	handleError(err, flags.Parse(os.Args[1:]))
 }
 
 func handleError(err ...error) {
