@@ -150,16 +150,3 @@ func Providers() map[Configuration]SourceProvider {
 
 	return provs
 }
-
-// ProviderNames returns a sorted list of the names of the registered providers.
-func ProviderNames() []string {
-	var list []string
-
-	for _, provider := range providers {
-		list = append(list, provider.Name())
-	}
-
-	sort.Strings(list)
-
-	return list
-}

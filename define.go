@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/Rican7/define/internal/action"
@@ -125,11 +126,19 @@ func printConfig() {
 }
 
 func printSources() {
+	var sourceStrings []string
+
+	for conf, source := range registry.Providers() {
+		sourceStrings = append(sourceStrings, fmt.Sprintf("%q (%s)", source.Name(), conf.JSONKey()))
+	}
+
+	sort.Strings(sourceStrings)
+
 	stdOutWriter.IndentWrites(func(writer *defineio.PanicWriter) {
 		writer.WritePaddedStringLine("Available sources:", 1)
 
-		for i, source := range registry.ProviderNames() {
-			writer.WriteStringLine(fmt.Sprintf("%d. %q", i+1, source))
+		for i, source := range sourceStrings {
+			writer.WriteStringLine(fmt.Sprintf("%d. %s", i+1, source))
 		}
 
 		writer.WriteNewLine()
