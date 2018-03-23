@@ -48,12 +48,7 @@ func initializeCommandLineConfig(flags *flag.FlagSet, defaults Configuration) *C
 func initializeFileConfig(fileLocation string) (Configuration, error) {
 	var conf Configuration
 
-	// If we can expand the location, do so
-	if expanded, err := homedir.Expand(fileLocation); nil == err {
-		fileLocation = expanded
-	}
-
-	fileContents, err := ioutil.ReadFile(fileLocation)
+	fileContents, err := ioutil.ReadFile(tryExpandPath(fileLocation))
 
 	if nil != err {
 		return conf, err
@@ -96,6 +91,16 @@ func mergeConfigurations(confs ...Configuration) (Configuration, error) {
 	return merged, nil
 }
 
+// tryExpandPath attempts to expand a given path and returns the expanded path
+// if successful. Otherwise, if expansion failed, the original path is returned.
+func tryExpandPath(path string) string {
+	if expanded, err := homedir.Expand(path); nil == err {
+		path = expanded
+	}
+
+	return path
+}
+
 // NewFromRuntime builds a Configuration by merging values from multiple
 // different sources. It accepts a Configuration containing default values to
 // fill in any empty/blank configuration values found when merging from the
@@ -119,7 +124,7 @@ func NewFromRuntime(
 	var fileConfig Configuration
 
 	// Set our config file location
-	defaults.configFileLocation = defaultConfigFileLocation
+	defaults.configFileLocation = tryExpandPath(defaultConfigFileLocation)
 
 	commandLineConfig := initializeCommandLineConfig(flags, defaults)
 
@@ -127,14 +132,9 @@ func NewFromRuntime(
 	err = flags.Parse(os.Args[1:])
 
 	if nil == err {
-		configFileLocation := commandLineConfig.configFileLocation
+		configFileLocation := tryExpandPath(commandLineConfig.configFileLocation)
 
 		if "" == configFileLocation && "" != defaults.configFileLocation {
-			// If we can expand the location, do so
-			if expanded, err := homedir.Expand(defaults.configFileLocation); nil == err {
-				defaults.configFileLocation = expanded
-			}
-
 			// If we haven't passed a config file flag, and our default exists
 			if _, err := os.Stat(defaults.configFileLocation); !os.IsNotExist(err) {
 				// Set our location to the default, since it exists
