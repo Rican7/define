@@ -102,31 +102,6 @@ func init() {
 	handleError(flags.Parse(os.Args[1:]))
 }
 
-func main() {
-	// Get the word from our first non-flag argument
-	word := flags.Arg(0)
-
-	// Decide what to perform
-	switch act.Type() {
-	case action.PrintConfig:
-		printConfig()
-	case action.ListSources:
-		printSources()
-	case action.PrintVersion:
-		printVersion()
-	case action.DefineWord:
-		fallthrough
-	default:
-		if "" == word {
-			// Show our usage
-			printUsage(stdOutWriter, conf.IndentationSize)
-			quit(1)
-		} else {
-			defineWord(word)
-		}
-	}
-}
-
 func handleError(err ...error) {
 	for _, e := range err {
 		if nil != e {
@@ -201,4 +176,29 @@ func defineWord(word string) {
 
 	resultPrinter.PrintResult(result)
 	resultPrinter.PrintSourceName(src)
+}
+
+func main() {
+	// Get the word from our first non-flag argument
+	word := flags.Arg(0)
+
+	// Decide what to perform
+	switch act.Type() {
+	case action.PrintConfig:
+		printConfig()
+	case action.ListSources:
+		printSources()
+	case action.PrintVersion:
+		printVersion()
+	case action.DefineWord:
+		fallthrough
+	default:
+		if "" == word {
+			// Show our usage
+			printUsage(stdOutWriter, conf.IndentationSize)
+			quit(1)
+		} else {
+			defineWord(word)
+		}
+	}
 }
