@@ -28,6 +28,7 @@ type Configuration struct {
 	// Private fields that shouldn't be externally set or output
 	providerConfigs    map[string]registry.Configuration
 	configFileLocation string
+	noConfigFile       bool
 }
 
 // initializeCommandLineConfig initializes the command line configuration.
@@ -36,6 +37,7 @@ func initializeCommandLineConfig(flags *flag.FlagSet, defaults Configuration) *C
 
 	// Define our flags
 	flags.StringVarP(&conf.configFileLocation, "config-file", "c", defaults.configFileLocation, "The location of the config file to use")
+	flags.BoolVar(&conf.noConfigFile, "no-config-file", defaults.noConfigFile, "To not load any config file")
 	flags.UintVar(&conf.IndentationSize, "indent-size", defaults.IndentationSize, "The number of spaces to indent output by")
 	flags.StringVar(&conf.PreferredSource, "preferred-source", defaults.PreferredSource, "The preferred source to use, if available and able to be provided")
 	flags.StringVarP(&conf.Source, "source", "s", defaults.Source, "The source to use (will error if unavailable or unable to be provided)")
@@ -131,7 +133,7 @@ func NewFromRuntime(
 	// Parse our flag set, as we need the values from the commandLineConfig
 	err = flags.Parse(os.Args[1:])
 
-	if nil == err {
+	if nil == err && !commandLineConfig.noConfigFile {
 		configFileLocation := tryExpandPath(commandLineConfig.configFileLocation)
 
 		if "" == configFileLocation && "" != defaults.configFileLocation {
