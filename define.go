@@ -6,7 +6,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"strings"
 
@@ -198,18 +197,8 @@ func defineWord(word string) {
 
 	handleError(err, source.ValidateResult(result))
 
-	printer.NewResultPrinter(stdOutWriter, conf.IndentationSize).PrintResult(result)
-	printSourceName(src)
-}
+	resultPrinter := printer.NewResultPrinter(stdOutWriter, conf.IndentationSize)
 
-func printSourceName(src source.Source) {
-	stdOutWriter.IndentWrites(conf.IndentationSize, func(writer *defineio.PanicWriter) {
-		text := fmt.Sprintf("Results provided by: %q", src.Name())
-		separatorSize := int(math.Min(float64(60), float64(len(text))))
-
-		writer.WriteNewLine()
-		writer.WriteStringLine(strings.Repeat("-", separatorSize))
-		writer.WriteStringLine(text)
-		writer.WriteNewLine()
-	})
+	resultPrinter.PrintResult(result)
+	resultPrinter.PrintSourceName(src)
 }

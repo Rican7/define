@@ -6,6 +6,7 @@ package printer
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	defineio "github.com/Rican7/define/internal/io"
@@ -27,6 +28,19 @@ type ResultPrinter struct {
 // NewResultPrinter creates a new ResultPrinter.
 func NewResultPrinter(out *defineio.PanicWriter, indentationSize uint) *ResultPrinter {
 	return &ResultPrinter{out: out, indentationSize: indentationSize}
+}
+
+// PrintSourceName prints the name of a source.Source.
+func (p *ResultPrinter) PrintSourceName(src source.Source) {
+	p.out.IndentWrites(p.indentationSize, func(writer *defineio.PanicWriter) {
+		text := fmt.Sprintf("Results provided by: %q", src.Name())
+		separatorSize := int(math.Min(float64(60), float64(len(text))))
+
+		writer.WriteNewLine()
+		writer.WriteStringLine(strings.Repeat("-", separatorSize))
+		writer.WriteStringLine(text)
+		writer.WriteNewLine()
+	})
 }
 
 // PrintResult prints a source.Result.
