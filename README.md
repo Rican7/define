@@ -51,7 +51,7 @@ Some configuration values can also be specified via environment variables. This 
 
 The following environment variables are read by **define**'s sources:
 
-- `MERIAM_WEBSTER_DICTIONARY_APP_KEY`
+- `MERRIAM_WEBSTER_DICTIONARY_APP_KEY`
 - `OXFORD_DICTIONARY_APP_ID`
 - `OXFORD_DICTIONARY_APP_KEY`
 
