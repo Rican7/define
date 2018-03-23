@@ -6,7 +6,7 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -148,7 +148,7 @@ func NewFromRuntime(
 			fileConfig, err = initializeFileConfig(configFileLocation)
 
 			if nil != err {
-				err = errors.New("error reading config file")
+				err = fmt.Errorf("error reading config file %q with error: %s", configFileLocation, err)
 			}
 		}
 	}
