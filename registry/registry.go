@@ -58,6 +58,7 @@ type RegisterFunc func(*flag.FlagSet) (SourceProvider, Configuration)
 
 var (
 	configured    sync.Once
+	finalized     sync.Once
 	registrations = make([]RegisterFunc, 0)
 
 	providers = make(map[Configuration]SourceProvider)
@@ -97,11 +98,13 @@ func ConfigureProviders(flags *flag.FlagSet) map[string]Configuration {
 // This is intended to be called ONLY by the registry owner.
 // TODO: Prevent external calls somehow?
 func Finalize(confs ...Configuration) {
-	for _, conf := range confs {
-		if dynamicConf, ok := conf.(DynamicConfiguration); ok {
-			dynamicConf.Finalize()
+	finalized.Do(func() {
+		for _, conf := range confs {
+			if dynamicConf, ok := conf.(DynamicConfiguration); ok {
+				dynamicConf.Finalize()
+			}
 		}
-	}
+	})
 }
 
 // Provide takes a configuration and calls the associated source providers
