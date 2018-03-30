@@ -24,7 +24,7 @@ go get github.com/Rican7/define
 
 ## Configuration
 
-**define** has multiple configuration methods:
+The **define** app allows configuration through multiple means. You can either set configuration via:
 
 - Command line flags (good for one-off use)
 - A configuration file (good for your "dotfiles")
@@ -33,7 +33,7 @@ go get github.com/Rican7/define
 
 ### Command line flags
 
-The list of command line flags is easily discovered via the `--help` flag. Command line flags override all other configuration mechanisms.
+The list of command line flags is easily discovered via the `--help` flag. Any passed command line flag will take precedence over any other configuration mechanism.
 
 ### Configuration file
 
@@ -58,9 +58,9 @@ The following environment variables are read by **define**'s sources:
 
 ## Sources
 
-The **define** app has access to multiple sources, however some require user-specific API keys due to usage limitations.
+The **define** app has access to multiple sources, however some of them require user-specific API keys, due to usage limitations.
 
-A preferred source can be specified with the command line flag `--preferred-source="..."` or in a configuration file. For more information, see the section on [Configuration](#configuration).
+You can specify a preferred source either via the command line flag `--preferred-source="..."` or in your configuration file. For more information, see the section on [Configuration](#configuration).
 
 ### Obtaining API keys
 
