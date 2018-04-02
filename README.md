@@ -60,7 +60,7 @@ The following environment variables are read by **define**'s sources:
 
 The **define** app has access to multiple sources, however some of them require user-specific API keys, due to usage limitations.
 
-You can specify a preferred source either via the command line flag `--preferred-source="..."` or in your configuration file. For more information, see the section on [Configuration](#configuration).
+A preferred source can be specified with the command line flag `--preferred-source="..."` or in a configuration file. For more information, see the section on [Configuration](#configuration).
 
 ### Obtaining API keys
 
