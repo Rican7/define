@@ -5,6 +5,7 @@ package io
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"io"
 	"strings"
 	"testing"
@@ -109,6 +110,32 @@ func TestWriteString(t *testing.T) {
 	}
 
 	if w.String() != toWrite {
+		t.Errorf(
+			"Writer didn't write the expected string. Got %q. Want %q.",
+			w.String(),
+			toWrite,
+		)
+	}
+}
+
+func TestWriteUnescapedString(t *testing.T) {
+	toWrite := "&#34;test&#34;"
+	want := len(toWrite)
+
+	w := &strings.Builder{}
+	pw := &PanicWriter{inner: w}
+
+	got := pw.WriteString(toWrite)
+
+	if got != want || got != w.Len() {
+		t.Errorf(
+			"WriteString didn't write the expected number of bytes. Got %d. Want %d.",
+			got,
+			want,
+		)
+	}
+
+	if html.UnescapeString(w.String()) != "\"test\"" {
 		t.Errorf(
 			"Writer didn't write the expected string. Got %q. Want %q.",
 			w.String(),

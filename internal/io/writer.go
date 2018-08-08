@@ -7,6 +7,7 @@ package io
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"io"
 )
 
@@ -82,7 +83,7 @@ func (w *PanicWriter) WriteNewLine() int {
 // character after the given string, and returns the number of bytes that were
 // written. It'll panic if any error occurs during writing.
 func (w *PanicWriter) WriteStringLine(p string) int {
-	return w.WriteString(p) + w.WriteNewLine()
+	return w.WriteString(html.UnescapeString(p)) + w.WriteNewLine()
 }
 
 // WritePaddedStringLine writes a given number of blank lines before and after
