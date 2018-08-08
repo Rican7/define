@@ -1,5 +1,12 @@
+# Define binary
+define
+
 # Vendor Directory
 /vendor
 
 # Build Directory
 /.tmpbuild
+
+# IntelliJ
+*.iml
+.idea/
