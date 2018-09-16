@@ -6,7 +6,3 @@ define
 
 # Build Directory
 /.tmpbuild
-
-# IntelliJ
-*.iml
-.idea/

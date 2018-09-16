@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"strings"
 
+	"html"
+
 	"github.com/Rican7/define/source"
 	"github.com/microcosm-cc/bluemonday"
 )
@@ -186,6 +188,7 @@ func (r apiResult) toResult() source.Result {
 // sanitize cleans a string of any formatting identifiers or markup
 func sanitize(str string) string {
 	str = htmlCleaner.Sanitize(str)
+	str = html.UnescapeString(str)
 	str = stringCleaner.Replace(str)
 
 	return str
