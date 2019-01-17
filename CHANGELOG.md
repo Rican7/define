@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 0.1.2
+
+### Features
+
+- Migrated dependency/package management from `dep` to Go Modules
+
+### Bug fixes
+
+- Improved the cleaning/sanitizing of results from the Glosbe source
+- Improved some wording in the README
+
+
 ## 0.1.1
 
 ### Features
