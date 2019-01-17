@@ -2,47 +2,65 @@
 
 
 [[projects]]
+  digest = "1:ca82a3b99694824c627573c2a76d0e49719b4a9c02d1d85a2ac91f1c1f52ab9b"
   name = "github.com/fatih/structs"
   packages = ["."]
+  pruneopts = "UT"
   revision = "a720dfa8df582c51dee1b36feabb906bde1588bd"
   version = "v1.0"
 
 [[projects]]
+  digest = "1:f645a4d6ea9dc5881f5520b8fb50bf70e7722f9baf7ece61fd1577cc5bedefe3"
   name = "github.com/imdario/mergo"
   packages = ["."]
+  pruneopts = "UT"
   revision = "163f41321a19dd09362d4c63cc2489db2015f1f4"
   version = "0.3.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:e83a8cf54ecc5c4efdbc88aa914578773d4d6897470b698ae315b5734081e8ed"
   name = "github.com/microcosm-cc/bluemonday"
   packages = ["."]
+  pruneopts = "UT"
   revision = "542fd4642604d0d0c26112396ce5b1a9d01eee0b"
 
 [[projects]]
   branch = "master"
+  digest = "1:12ae6210bdbdad658a9a67fd95cd9c99f7fdbf12f6d36eaf0af704e69dacf4f5"
   name = "github.com/mitchellh/go-homedir"
   packages = ["."]
+  pruneopts = "UT"
   revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
 
 [[projects]]
   branch = "master"
+  digest = "1:e6275acf1da0fdaaae389fcbb462b19c85ce1f1f748e681ab77312bf3b6a3ffe"
   name = "github.com/ogier/pflag"
   packages = ["."]
+  pruneopts = "UT"
   revision = "45c278ab3607870051a2ea9040bb85fcb8557481"
 
 [[projects]]
   branch = "master"
+  digest = "1:d610e483f9d284959f3bb01d8917ad0e4efd393a8587123b1e3406fdf37199f0"
   name = "golang.org/x/net"
   packages = [
     "html",
-    "html/atom"
+    "html/atom",
   ]
+  pruneopts = "UT"
   revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "312b564ceb7e078ac218213d71bfedb2d7e8fa5deff486e3c9f29a1baea08632"
+  input-imports = [
+    "github.com/fatih/structs",
+    "github.com/imdario/mergo",
+    "github.com/microcosm-cc/bluemonday",
+    "github.com/mitchellh/go-homedir",
+    "github.com/ogier/pflag",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

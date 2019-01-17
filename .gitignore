@@ -1,3 +1,6 @@
+# Define binary
+define
+
 # Vendor Directory
 /vendor
 
