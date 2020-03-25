@@ -20,7 +20,7 @@ const (
 	// baseURLString is the base URL for all Oxford API interactions
 	baseURLString = "https://od-api.oxforddictionaries.com/api/v2/"
 
-	entriesURLString = baseURLString + "entries/"
+	entriesURLString             = baseURLString + "entries/"
 	defaultEntriesSourceLanguage = "en-us"
 
 	httpRequestAcceptHeaderName = "Accept"
@@ -134,7 +134,7 @@ type apiResult struct {
 						Text string `json:"text"`
 					} `json:"lexicalCategory"`
 					Pronunciations []apiPronunciation `json:"pronunciations"`
-					Regions []struct {
+					Regions        []struct {
 						ID   string `json:"id"`
 						Text string `json:"text"`
 					} `json:"regions"`
@@ -149,8 +149,8 @@ type apiResult struct {
 					Type string `json:"type"`
 				} `json:"notes"`
 				Pronunciations []apiPronunciation `json:"pronunciations"`
-				Senses []apiSense `json:"senses"`
-				VariantForms []struct {
+				Senses         []apiSense         `json:"senses"`
+				VariantForms   []struct {
 					Domains []struct {
 						ID   string `json:"id"`
 						Text string `json:"text"`
@@ -161,7 +161,7 @@ type apiResult struct {
 						Type string `json:"type"`
 					} `json:"notes"`
 					Pronunciations []apiPronunciation `json:"pronunciations"`
-					Regions []struct {
+					Regions        []struct {
 						ID   string `json:"id"`
 						Text string `json:"text"`
 					} `json:"regions"`
@@ -222,8 +222,8 @@ type apiResult struct {
 				Text string `json:"text"`
 			} `json:"phrases"`
 			Pronunciations []apiPronunciation `json:"pronunciations"`
-			Text         string `json:"text"`
-			VariantForms []struct {
+			Text           string             `json:"text"`
+			VariantForms   []struct {
 				Domains []struct {
 					ID   string `json:"id"`
 					Text string `json:"text"`
@@ -234,7 +234,7 @@ type apiResult struct {
 					Type string `json:"type"`
 				} `json:"notes"`
 				Pronunciations []apiPronunciation `json:"pronunciations"`
-				Regions []struct {
+				Regions        []struct {
 					ID   string `json:"id"`
 					Text string `json:"text"`
 				} `json:"regions"`
@@ -246,8 +246,8 @@ type apiResult struct {
 			} `json:"variantForms"`
 		} `json:"lexicalEntries"`
 		Pronunciations []apiPronunciation `json:"pronunciations"`
-		Type string `json:"type"`
-		Word string `json:"word"`
+		Type           string             `json:"type"`
+		Word           string             `json:"word"`
 	} `json:"results"`
 }
 
@@ -342,7 +342,7 @@ type apiSense struct {
 			Text string `json:"text"`
 		} `json:"lexicalCategory"`
 		Pronunciations []apiPronunciation `json:"pronunciations"`
-		Regions []struct {
+		Regions        []struct {
 			ID   string `json:"id"`
 			Text string `json:"text"`
 		} `json:"regions"`
@@ -357,7 +357,7 @@ type apiSense struct {
 		Type string `json:"type"`
 	} `json:"notes"`
 	Pronunciations []apiPronunciation `json:"pronunciations"`
-	Regions []struct {
+	Regions        []struct {
 		ID   string `json:"id"`
 		Text string `json:"text"`
 	} `json:"regions"`
@@ -367,7 +367,7 @@ type apiSense struct {
 	} `json:"registers"`
 	ShortDefinitions []string   `json:"shortDefinitions"`
 	Subsenses        []apiSense `json:"subsenses"`
-	Synonyms []struct {
+	Synonyms         []struct {
 		Domains []struct {
 			ID   string `json:"id"`
 			Text string `json:"text"`
@@ -399,7 +399,7 @@ type apiSense struct {
 			Type string `json:"type"`
 		} `json:"notes"`
 		Pronunciations []apiPronunciation `json:"pronunciations"`
-		Regions []struct {
+		Regions        []struct {
 			ID   string `json:"id"`
 			Text string `json:"text"`
 		} `json:"regions"`
@@ -426,7 +426,6 @@ type apiPronunciation struct {
 		Text string `json:"text"`
 	} `json:"registers"`
 }
-
 
 // oxfordEntry is a struct that contains the entry types for this API
 type oxfordEntry struct {
