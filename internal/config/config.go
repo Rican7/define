@@ -7,7 +7,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 
@@ -50,7 +49,7 @@ func initializeCommandLineConfig(flags *flag.FlagSet) *Configuration {
 func initializeFileConfig(fileLocation string) (Configuration, error) {
 	var conf Configuration
 
-	fileContents, err := ioutil.ReadFile(tryExpandPath(fileLocation))
+	fileContents, err := os.ReadFile(tryExpandPath(fileLocation))
 
 	if err != nil {
 		return conf, err

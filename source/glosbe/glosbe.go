@@ -5,7 +5,7 @@ package glosbe
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -132,7 +132,7 @@ func (g *api) Define(word string) (source.Result, error) {
 		return nil, err
 	}
 
-	body, err := ioutil.ReadAll(httpResponse.Body)
+	body, err := io.ReadAll(httpResponse.Body)
 
 	if err != nil {
 		return nil, err
