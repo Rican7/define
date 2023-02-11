@@ -1,6 +1,6 @@
 # define
 
-[![Build Status](https://travis-ci.org/Rican7/define.svg?branch=master)](https://travis-ci.org/Rican7/define)
+[![Build Status](https://github.com/Rican7/define/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Rican7/define/actions/workflows/main.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Rican7/define)](https://goreportcard.com/report/github.com/Rican7/define)
 [![Latest Stable Version](https://img.shields.io/github/release/Rican7/define.svg?style=flat)](https://github.com/Rican7/define/releases)
 

@@ -36,6 +36,10 @@ GOFMT_FLAGS ?= -s
 GOIMPORTS_FLAGS ?=
 GOLINT_MIN_CONFIDENCE ?= 0.3
 
+# Set the mode for code-coverage
+GO_TEST_COVERAGE_MODE ?= count
+GO_TEST_COVERAGE_FILE_NAME ?= coverage.out
+
 # Validate
 ifndef BUILD_DIR
 $(error BUILD_DIR must be set and non-empty)
@@ -82,7 +86,13 @@ test:
 	go test -v ./...
 
 test-with-coverage:
-	go test -cover ./...
+	go test -cover -covermode ${GO_TEST_COVERAGE_MODE} ./...
+
+test-with-coverage-formatted:
+	go test -cover -covermode ${GO_TEST_COVERAGE_MODE} ./... | column -t | sort -r
+
+test-with-coverage-profile:
+	go test -covermode ${GO_TEST_COVERAGE_MODE} -coverprofile ${GO_TEST_COVERAGE_FILE_NAME} ./...
 
 format-lint:
 	@errors=$$(gofmt -l ${GOFMT_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Format lint failed on:\n$${errors}\n"; exit 1; fi
