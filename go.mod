@@ -3,14 +3,15 @@ module github.com/Rican7/define
 go 1.20
 
 require (
-	github.com/fatih/structs v1.0.0
-	github.com/imdario/mergo v0.0.0-20180119215619-163f41321a19
-	github.com/microcosm-cc/bluemonday v0.0.0-20171222152607-542fd4642604
-	github.com/mitchellh/go-homedir v0.0.0-20161203194507-b8bc1bf76747
+	github.com/fatih/structs v1.1.0
+	github.com/imdario/mergo v0.3.13
+	github.com/microcosm-cc/bluemonday v1.0.22
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/ogier/pflag v0.0.0-20160129220114-45c278ab3607
 )
 
 require (
-	golang.org/x/net v0.0.0-20180320002117-6078986fec03 // indirect
-	gopkg.in/yaml.v2 v2.2.1 // indirect
+	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/gorilla/css v1.0.0 // indirect
+	golang.org/x/net v0.6.0 // indirect
 )
