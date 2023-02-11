@@ -15,10 +15,10 @@ A command-line dictionary (thesaurus) app, with access to multiple sources, writ
 
 Pre-compiled binaries are available on the [releases](https://github.com/Rican7/define/releases) page.
 
-If you have a working Go environment, you can install via `go get`:
+If you have a working Go environment, you can install via `go install`:
 
 ```shell
-go get github.com/Rican7/define
+go install github.com/Rican7/define
 ```
 
 
