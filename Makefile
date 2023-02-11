@@ -23,7 +23,7 @@ endif
 
 # Build flags
 GO_BUILD_FLAGS ?= -ldflags "${GO_LD_FLAGS}" -v
-GO_CLEAN_FLAGS ?= -i -r -modcache -x ${GO_BUILD_FLAGS}
+GO_CLEAN_FLAGS ?= -i -r -x ${GO_BUILD_FLAGS}
 
 # Compilation flags
 XC_ARCHITECTURES ?= 386 amd64 arm arm64
