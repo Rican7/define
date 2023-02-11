@@ -4,9 +4,11 @@ COMMIT_HASH = $(shell git rev-parse --short HEAD)
 
 # Define directories
 ROOT_DIR ?= ${CURDIR}
+TOOLS_DIR ?= ${ROOT_DIR}/tools
 BUILD_DIR ?= ${ROOT_DIR}/.tmpbuild
-GOPATH_FIRST ?= $(word 1, $(subst :, , ${GOPATH}))
-GOBIN ?= ${GOPATH_FIRST}/bin
+
+# Set a local GOBIN to run our local tooling
+export GOBIN ?= ${TOOLS_DIR}/bin
 
 # Define program imports and variables for the compiler
 APP_VERSION_IMPORT_PATH ?= github.com/Rican7/define/internal/version
@@ -33,9 +35,6 @@ GOX_BUILD_FLAGS ?= -verbose -ldflags="${GO_LD_FLAGS}" -arch="${XC_ARCHITECTURES}
 GOFMT_FLAGS ?= -s
 GOIMPORTS_FLAGS ?=
 GOLINT_MIN_CONFIDENCE ?= 0.3
-
-# Environment variables
-export GO111MODULE = on
 
 # Validate
 ifndef BUILD_DIR
@@ -67,20 +66,17 @@ install: install-deps
 	go install ${GO_BUILD_FLAGS}
 
 install-deps:
-	go get -d ./...
+	go mod download
 
-install-deps-dev: install-deps
-	go get github.com/golang/lint/golint
-	go get golang.org/x/tools/cmd/goimports
-	go get github.com/mitchellh/gox
+tools install-deps-dev: install-deps
+	cd tools && go install \
+		golang.org/x/lint/golint \
+		golang.org/x/tools/cmd/goimports \
+		honnef.co/go/tools/cmd/staticcheck \
+		github.com/mitchellh/gox
 
 update-deps:
-	go get -d -u ./...
-
-update-deps-dev: update-deps
-	go get -u github.com/golang/lint/golint
-	go get -u golang.org/x/tools/cmd/goimports
-	go get -u github.com/mitchellh/gox
+	go get ./...
 
 test:
 	go test -v ./...
@@ -91,25 +87,26 @@ test-with-coverage:
 format-lint:
 	@errors=$$(gofmt -l ${GOFMT_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Format lint failed on:\n$${errors}\n"; exit 1; fi
 
-import-lint:
-	@errors=$$(goimports -l ${GOIMPORTS_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Import lint failed on:\n$${errors}\n"; exit 1; fi
+import-lint: install-deps-dev
+	@errors=$$(${GOBIN}/goimports -l ${GOIMPORTS_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Import lint failed on:\n$${errors}\n"; exit 1; fi
 
-style-lint:
-	@errors=$$(golint -min_confidence=${GOLINT_MIN_CONFIDENCE} ./...); if [ "$${errors}" != "" ]; then echo "Style lint failed on:\n$${errors}\n"; exit 1; fi
+style-lint: install-deps-dev
+	${GOBIN}/golint -min_confidence=${GOLINT_MIN_CONFIDENCE} -set_exit_status ./...
+	${GOBIN}/staticcheck ./...
 
 lint: install-deps-dev format-lint import-lint style-lint
+
+vet:
+	go vet ./...
 
 format-fix:
 	gofmt -w ${GOFMT_FLAGS} .
 
 import-fix:
-	goimports -w ${GOIMPORTS_FLAGS} .
+	${GOBIN}/goimports -w ${GOIMPORTS_FLAGS} .
 
 fix: install-deps-dev format-fix import-fix
 	go fix ./...
 
-vet:
-	go vet ./...
 
-
-.PHONY: all clean clean-release build build-release install install-deps install-deps-dev update-deps update-deps-dev test test-with-coverage format-lint import-lint style-lint lint format-fix import-fix fix vet
+.PHONY: all clean clean-release build build-release install install-deps tools install-deps-dev update-deps test test-with-coverage format-lint import-lint style-lint lint vet format-fix import-fix fix
