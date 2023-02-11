@@ -52,7 +52,7 @@ func initializeFileConfig(fileLocation string) (Configuration, error) {
 
 	fileContents, err := ioutil.ReadFile(tryExpandPath(fileLocation))
 
-	if nil != err {
+	if err != nil {
 		return conf, err
 	}
 
@@ -68,7 +68,7 @@ func initializeFileConfig(fileLocation string) (Configuration, error) {
 func initializeEnvironmentConfig() Configuration {
 	var conf Configuration
 
-	if val, err := strconv.ParseUint(os.Getenv("DEFINE_APP_INDENT_SIZE"), 10, 0); nil == err {
+	if val, err := strconv.ParseUint(os.Getenv("DEFINE_APP_INDENT_SIZE"), 10, 0); err == nil {
 		conf.IndentationSize = uint(val)
 	}
 
@@ -85,7 +85,7 @@ func mergeConfigurations(confs ...Configuration) (Configuration, error) {
 	var merged Configuration
 
 	for _, conf := range confs {
-		if err := mergo.Merge(&merged, conf); nil != err {
+		if err := mergo.Merge(&merged, conf); err != nil {
 			return merged, err
 		}
 	}
@@ -96,7 +96,7 @@ func mergeConfigurations(confs ...Configuration) (Configuration, error) {
 // tryExpandPath attempts to expand a given path and returns the expanded path
 // if successful. Otherwise, if expansion failed, the original path is returned.
 func tryExpandPath(path string) string {
-	if expanded, err := homedir.Expand(path); nil == err {
+	if expanded, err := homedir.Expand(path); err == nil {
 		path = expanded
 	}
 
@@ -133,10 +133,10 @@ func NewFromRuntime(
 	// Parse our flag set, as we need the values from the commandLineConfig
 	err = flags.Parse(os.Args[1:])
 
-	if nil == err && !commandLineConfig.noConfigFile {
+	if err == nil && !commandLineConfig.noConfigFile {
 		configFileLocation := tryExpandPath(commandLineConfig.configFileLocation)
 
-		if "" == configFileLocation && "" != defaults.configFileLocation {
+		if configFileLocation == "" && defaults.configFileLocation != "" {
 			// If we haven't passed a config file flag, and our default exists
 			if _, err := os.Stat(defaults.configFileLocation); !os.IsNotExist(err) {
 				// Set our location to the default, since it exists
@@ -146,16 +146,16 @@ func NewFromRuntime(
 		}
 
 		// If we have a config file to load
-		if "" != configFileLocation {
+		if configFileLocation != "" {
 			fileConfig, err = initializeFileConfig(configFileLocation)
 
-			if nil != err {
+			if err != nil {
 				err = fmt.Errorf("error reading config file %q with error: %s", configFileLocation, err)
 			}
 		}
 	}
 
-	if nil == err {
+	if err == nil {
 		conf, err = mergeConfigurations(
 			*commandLineConfig,
 			fileConfig,
@@ -186,7 +186,7 @@ func (c Configuration) MarshalJSON() ([]byte, error) {
 
 	for _, providerConf := range c.providerConfigs {
 		// Skip nil and zero-value configs
-		if nil == providerConf || len(structs.Fields(providerConf)) < 1 {
+		if providerConf == nil || len(structs.Fields(providerConf)) < 1 {
 			continue
 		}
 
@@ -206,7 +206,7 @@ func (c *Configuration) UnmarshalJSON(data []byte) error {
 	// Unmarshal our base configuration
 	err = json.Unmarshal(data, (*conf)(c))
 
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
@@ -214,11 +214,11 @@ func (c *Configuration) UnmarshalJSON(data []byte) error {
 
 	err = json.Unmarshal(data, &configMap)
 
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
-	if nil == c.providerConfigs {
+	if c.providerConfigs == nil {
 		c.providerConfigs = make(map[string]registry.Configuration)
 	}
 

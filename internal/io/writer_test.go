@@ -28,7 +28,7 @@ func (w writerShouldError) Write(p []byte) (int, error) {
 func TestNewPanicWriter(t *testing.T) {
 	pw := NewPanicWriter(&strings.Builder{}, 0)
 
-	if nil == pw {
+	if pw == nil {
 		t.Errorf("NewPanicWriter returned nil")
 	}
 }
@@ -81,7 +81,7 @@ func TestWriteWithSpaces(t *testing.T) {
 
 func TestWritePanicsOnError(t *testing.T) {
 	defer func() {
-		if nil == recover() {
+		if recover() == nil {
 			t.Errorf("Write with an error did not panic.")
 		}
 	}()
@@ -287,7 +287,7 @@ func TestIndentWrites(t *testing.T) {
 	w := &strings.Builder{}
 	pw := &PanicWriter{inner: w, indentStepSize: indentSize}
 
-	if 0 != pw.spaces {
+	if pw.spaces != 0 {
 		t.Errorf(
 			"Writer has incorrect indent size. Got %d. Want %d.",
 			pw.spaces,
@@ -323,7 +323,7 @@ func TestIndentWritesBy(t *testing.T) {
 	w := &strings.Builder{}
 	pw := &PanicWriter{inner: w}
 
-	if 0 != pw.spaces {
+	if pw.spaces != 0 {
 		t.Errorf(
 			"Writer has incorrect indent size. Got %d. Want %d.",
 			pw.spaces,
@@ -385,7 +385,7 @@ func TestIndented(t *testing.T) {
 
 	pw := &PanicWriter{inner: &strings.Builder{}}
 
-	if 0 != pw.spaces {
+	if pw.spaces != 0 {
 		t.Errorf(
 			"Writer has incorrect indent size. Got %d. Want %d.",
 			pw.spaces,

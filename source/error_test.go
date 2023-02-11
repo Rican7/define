@@ -114,7 +114,7 @@ func TestEmptyResultError_Error(t *testing.T) {
 	word := "test"
 	msg := (&EmptyResultError{Word: word}).Error()
 
-	if "" == msg {
+	if msg == "" {
 		t.Errorf("Error returned an empty message")
 	}
 
@@ -126,7 +126,7 @@ func TestEmptyResultError_Error(t *testing.T) {
 func TestAuthenticationError_Error(t *testing.T) {
 	msg := (&AuthenticationError{}).Error()
 
-	if "" == msg {
+	if msg == "" {
 		t.Errorf("Error returned an empty message")
 	}
 }
@@ -134,7 +134,7 @@ func TestAuthenticationError_Error(t *testing.T) {
 func TestInvalidResponseError_Error(t *testing.T) {
 	msg := (&InvalidResponseError{}).Error()
 
-	if "" == msg {
+	if msg == "" {
 		t.Errorf("Error returned an empty message")
 	}
 }

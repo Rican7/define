@@ -25,7 +25,7 @@ var (
 
 // Name returns the name of the version.
 func Name() string {
-	if devID == identifier && "" != commitHash {
+	if devID == identifier && commitHash != "" {
 		return fmt.Sprintf("%s#%s", identifier, commitHash)
 	}
 

@@ -63,11 +63,11 @@ func (c *config) UnmarshalJSON(data []byte) error {
 	// Unmarshal into our copy
 	err := json.Unmarshal(data, copy)
 
-	if nil != err {
+	if err != nil {
 		return err
 	}
 
-	if "" == c.AppKey {
+	if c.AppKey == "" {
 		c.AppKey = copy.AppKey
 	}
 
@@ -75,7 +75,7 @@ func (c *config) UnmarshalJSON(data []byte) error {
 }
 
 func (c *config) Finalize() {
-	if "" == c.AppKey {
+	if c.AppKey == "" {
 		c.AppKey = os.Getenv("MERRIAM_WEBSTER_DICTIONARY_APP_KEY")
 	}
 }
@@ -87,7 +87,7 @@ func (p *provider) Name() string {
 func (p *provider) Provide(conf registry.Configuration) (source.Source, error) {
 	config := conf.(*config)
 
-	if "" == config.AppKey {
+	if config.AppKey == "" {
 		return nil, &RequiredConfigError{Key: "AppKey"}
 	}
 

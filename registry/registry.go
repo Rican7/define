@@ -81,7 +81,7 @@ func ConfigureProviders(flags *flag.FlagSet) map[string]Configuration {
 		for _, registerFunc := range registrations {
 			provider, conf := registerFunc(flags)
 
-			if nil == provider || nil == conf {
+			if provider == nil || conf == nil {
 				panic("register func returned nil values")
 			}
 
@@ -114,7 +114,7 @@ func Provide(conf Configuration) (source.Source, error) {
 
 	src, err := provider.Provide(conf)
 
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("source %q failed to initialize with error: %s", provider.Name(), err)
 	}
 
@@ -134,10 +134,10 @@ func ProvidePreferred(preferredProvider string, confs []Configuration) (source.S
 	}
 
 	for _, providerConf := range confs {
-		if src == nil || nil != err || preferredProvider == providerConf.JSONKey() {
+		if src == nil || err != nil || preferredProvider == providerConf.JSONKey() {
 			iSrc, iErr := Provide(providerConf)
 
-			if nil != iSrc && nil == iErr {
+			if iSrc != nil && iErr == nil {
 				src, err = iSrc, iErr
 			}
 		}

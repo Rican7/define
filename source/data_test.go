@@ -2,8 +2,10 @@
 
 package source
 
-import "reflect"
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 // Enforce interface contracts
 var (
@@ -56,7 +58,7 @@ func TestEntries(t *testing.T) {
 
 func TestEntriesPanicsOnInvalidType(t *testing.T) {
 	defer func() {
-		if nil == recover() {
+		if recover() == nil {
 			t.Errorf("Entries with an invalid type did not panic.")
 		}
 	}()

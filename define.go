@@ -80,7 +80,7 @@ func init() {
 
 	handleError(err)
 
-	if "" != conf.Source {
+	if conf.Source != "" {
 		if providerConf, exists := providerConfs[conf.Source]; exists {
 			src, err = registry.Provide(providerConf)
 		} else {
@@ -96,7 +96,7 @@ func init() {
 
 func handleError(err ...error) {
 	for _, e := range err {
-		if nil != e {
+		if e != nil {
 			msg := e.Error()
 
 			if len(msg) > 1 {
@@ -187,7 +187,7 @@ func main() {
 	case action.DefineWord:
 		fallthrough
 	default:
-		if "" == word {
+		if word == "" {
 			// Show our usage
 			printUsage(stdOutWriter)
 			quit(1)

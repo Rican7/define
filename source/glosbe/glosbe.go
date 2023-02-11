@@ -84,7 +84,7 @@ func init() {
 
 	apiURL, err = url.Parse(baseURLString)
 
-	if nil != err {
+	if err != nil {
 		panic(err)
 	}
 
@@ -116,7 +116,7 @@ func (g *api) Define(word string) (source.Result, error) {
 
 	httpRequest, err := http.NewRequest(http.MethodGet, apiURL.String(), nil)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
@@ -124,23 +124,23 @@ func (g *api) Define(word string) (source.Result, error) {
 
 	httpResponse, err := g.httpClient.Do(httpRequest)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
-	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); nil != err {
+	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); err != nil {
 		return nil, err
 	}
 
 	body, err := ioutil.ReadAll(httpResponse.Body)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
 	var result apiResult
 
-	if err = json.Unmarshal(body, &result); nil != err {
+	if err = json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
 
@@ -163,7 +163,7 @@ func (r apiResult) toResult() source.Result {
 	for _, item := range r.TUC {
 		// Entries are only valid definitions if they don't have a separate
 		// phrase, or their phrase matches the looked-up phrase
-		if nil == item.Phrase || strings.EqualFold(item.Phrase.Text, r.Phrase) {
+		if item.Phrase == nil || strings.EqualFold(item.Phrase.Text, r.Phrase) {
 			for _, meaning := range item.Meanings {
 				definition := sanitize(meaning.Text)
 
@@ -171,7 +171,7 @@ func (r apiResult) toResult() source.Result {
 
 				senses = append(senses, sense)
 			}
-		} else if nil != item.Phrase && "" != item.Phrase.Text {
+		} else if item.Phrase != nil && item.Phrase.Text != "" {
 			entry.SynonymVals = append(entry.SynonymVals, item.Phrase.Text)
 		}
 	}

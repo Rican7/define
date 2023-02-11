@@ -220,7 +220,7 @@ func init() {
 
 	apiURL, err = url.Parse(baseURLString)
 
-	if nil != err {
+	if err != nil {
 		panic(err)
 	}
 }
@@ -240,13 +240,13 @@ func (g *api) Define(word string) (source.Result, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(entriesURLString + "en/" + word)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
 	httpRequest, err := http.NewRequest(http.MethodGet, apiURL.ResolveReference(requestURL).String(), nil)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
@@ -256,7 +256,7 @@ func (g *api) Define(word string) (source.Result, error) {
 
 	httpResponse, err := g.httpClient.Do(httpRequest)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
@@ -270,19 +270,19 @@ func (g *api) Define(word string) (source.Result, error) {
 		return nil, &source.AuthenticationError{}
 	}
 
-	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); nil != err {
+	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); err != nil {
 		return nil, err
 	}
 
 	body, err := ioutil.ReadAll(httpResponse.Body)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
 	var result apiResult
 
-	if err = json.Unmarshal(body, &result); nil != err {
+	if err = json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
 

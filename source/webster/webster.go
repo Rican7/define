@@ -146,7 +146,7 @@ func init() {
 
 	apiURL, err = url.Parse(baseURLString)
 
-	if nil != err {
+	if err != nil {
 		panic(err)
 	}
 }
@@ -169,13 +169,13 @@ func (g *api) Define(word string) (source.Result, error) {
 	queryParams.Set(httpRequestAppKeyQueryParamName, g.appKey)
 	requestURL.RawQuery = queryParams.Encode()
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
 	httpRequest, err := http.NewRequest(http.MethodGet, apiURL.ResolveReference(requestURL).String(), nil)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
@@ -185,25 +185,25 @@ func (g *api) Define(word string) (source.Result, error) {
 
 	httpResponse, err := g.httpClient.Do(httpRequest)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
 	defer httpResponse.Body.Close()
 
-	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); nil != err {
+	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); err != nil {
 		return nil, err
 	}
 
 	body, err := ioutil.ReadAll(httpResponse.Body)
 
-	if nil != err {
+	if err != nil {
 		return nil, err
 	}
 
 	var result apiResult
 
-	if err = xml.Unmarshal(body, &result); nil != err {
+	if err = xml.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
 
@@ -232,7 +232,7 @@ func (s *apiDefinitionContainer) UnmarshalXML(d *xml.Decoder, start xml.StartEle
 	var currentSense *apiSense
 	isDefinitionContinuation := false
 
-	for token, err := subDecoder.Token(); nil != token || nil == err; token, err = subDecoder.Token() {
+	for token, err := subDecoder.Token(); token != nil || err == nil; token, err = subDecoder.Token() {
 		switch t := token.(type) {
 		case xml.StartElement:
 			switch t.Name.Local {
@@ -272,7 +272,7 @@ func (s *apiDefinitionContainer) UnmarshalXML(d *xml.Decoder, start xml.StartEle
 
 				isDefinitionContinuation = true
 			case definingTextTagName:
-				if len(senses) == 0 || nil == currentSense {
+				if len(senses) == 0 || currentSense == nil {
 					currentSense = &apiSense{}
 					senses = append(senses, currentSense)
 				}
@@ -302,7 +302,7 @@ func (s *apiDefinitionContainer) UnmarshalXML(d *xml.Decoder, start xml.StartEle
 				}
 			}
 
-			if nil != err {
+			if err != nil {
 				return err
 			}
 		}
@@ -413,7 +413,7 @@ func (e *apiExample) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error 
 	e.Author = strings.TrimSpace(e.Author)
 
 	// If we have an author
-	if "" != e.Author {
+	if e.Author != "" {
 		// If the author is in the string, strip it from the original string,
 		// so that we can properly append it
 		if strings.Contains(e.cleaned, e.Author) {

@@ -48,7 +48,7 @@ func (p *ResultPrinter) PrintResult(result source.Result) {
 		writer.WritePaddedStringLine(getHeader(result), 1)
 
 		for _, entry := range result.Entries() {
-			if entryHeader := getEntryHeader(result, entry); "" != entryHeader {
+			if entryHeader := getEntryHeader(result, entry); entryHeader != "" {
 				writer.WriteNewLine()
 				writer.WriteNewLine()
 				writer.WriteStringLine(entryHeader)
@@ -64,7 +64,7 @@ func (p *ResultPrinter) PrintResult(result source.Result) {
 }
 
 func printEntry(writer *defineio.PanicWriter, entry source.DictionaryEntry) {
-	if wordEntry, isWordEntry := entry.(source.WordEntry); isWordEntry && "" != wordEntry.Category() {
+	if wordEntry, isWordEntry := entry.(source.WordEntry); isWordEntry && wordEntry.Category() != "" {
 		writer.WritePaddedStringLine(fmt.Sprintf("(%s)", wordEntry.Category()), 1)
 	}
 
@@ -151,7 +151,7 @@ func getHeader(result source.Result) string {
 
 	firstEntry := result.Entries()[0]
 
-	if "" != firstEntry.Pronunciation() || (isSameWord(result, firstEntry) && "" != firstEntry.Pronunciation()) {
+	if firstEntry.Pronunciation() != "" || (isSameWord(result, firstEntry) && firstEntry.Pronunciation() != "") {
 		header = fmt.Sprintf("%s  /%s/", header, firstEntry.Pronunciation())
 	}
 
@@ -162,7 +162,7 @@ func getEntryHeader(result source.Result, entry source.DictionaryEntry) string {
 	var header string
 
 	if wordEntry, isWordEntry := entry.(source.WordEntry); isWordEntry && !isSameWord(result, entry) {
-		if "" != entry.Pronunciation() {
+		if entry.Pronunciation() != "" {
 			header = fmt.Sprintf("%s  /%s/", wordEntry.Word(), entry.Pronunciation())
 		} else {
 			header = wordEntry.Word()

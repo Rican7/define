@@ -35,9 +35,9 @@ type InvalidResponseError struct {
 
 // ValidateResult validates the result and returns an error if invalid
 func ValidateResult(result Result) error {
-	if nil == result {
+	if result == nil {
 		return &EmptyResultError{}
-	} else if len(result.Entries()) < 1 || "" == result.Headword() {
+	} else if len(result.Entries()) < 1 || result.Headword() == "" {
 		return &EmptyResultError{result.Headword()}
 	}
 
@@ -47,7 +47,7 @@ func ValidateResult(result Result) error {
 // ValidateAndReturnResult validates the result and returns the result and a nil
 // error if valid. If invalid, it'll return a nil result and an error.
 func ValidateAndReturnResult(result Result) (Result, error) {
-	if err := ValidateResult(result); nil != err {
+	if err := ValidateResult(result); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ValidateAndReturnResult(result Result) (Result, error) {
 // ValidateHTTPResponse validates an HTTP response and returns an error if the
 // response is invalid
 func ValidateHTTPResponse(httpResponse *http.Response, validContentTypes []string, validStatusCodes []int) error {
-	if nil == httpResponse {
+	if httpResponse == nil {
 		return &InvalidResponseError{}
 	}
 
@@ -98,7 +98,7 @@ func ValidateHTTPResponse(httpResponse *http.Response, validContentTypes []strin
 func (e *EmptyResultError) Error() string {
 	msg := emptyResultErrorMessage
 
-	if "" != e.Word {
+	if e.Word != "" {
 		msg = msg + fmt.Sprintf(errorMessageForWordSuffixFormat, e.Word)
 	}
 
