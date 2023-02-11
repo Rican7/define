@@ -1,8 +1,11 @@
 # Define binary
 define
 
-# Vendor Directory
-/vendor
-
 # Build Directory
 /.tmpbuild
+
+# Tools binaries
+/tools/bin
+
+# Code coverage files
+coverage.out
