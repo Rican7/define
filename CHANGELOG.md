@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## 0.1.3
+
+### Features
+
+- Updated the source to use Go 1.20
+- Updated all of the go module dependencies
+- Internal tooling is now versioned
+- Improved internal tooling for more strict linting
+- Switched continuous integration testing to use GitHub Actions
+- Updated the Oxford Dictionaries API source to use the new V2 API
+
+### Bug fixes
+
+- Updated the install instructions in the README
+- Made some refactors to satisfy more strict linting
+- Removed use of deprecated functions in favor of their replacements
+- Removed now unsupported build targets
+
+
 ## 0.1.2
 
 ### Features
