@@ -41,13 +41,13 @@ func TestLanguage(t *testing.T) {
 
 func TestEntries(t *testing.T) {
 	entries := []interface{}{
-		EntryValue{},
+		WordEntryValue{},
 	}
 	r := ResultValue{EntryVals: entries}
 
 	for i, entry := range r.Entries() {
 		got := entry
-		want := entries[i].(EntryValue)
+		want := entries[i].(WordEntryValue)
 
 		if !reflect.DeepEqual(got, want) {
 			t.Errorf("Entries returned wrong value. Got %v. Want %v.", got, want)

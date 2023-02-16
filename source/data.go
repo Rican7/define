@@ -9,15 +9,6 @@ type ResultValue struct {
 	EntryVals []interface{}
 }
 
-// An EntryValue contains the common attributes of a complete account of a
-// particular word
-type EntryValue struct {
-	WordEntryValue
-	DictionaryEntryValue
-	EtymologyEntryValue
-	ThesaurusEntryValue
-}
-
 // A WordEntryValue is a specific word entry representation
 type WordEntryValue struct {
 	WordVal     string
