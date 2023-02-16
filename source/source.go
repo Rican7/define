@@ -18,28 +18,6 @@ type Result interface {
 	Entries() []DictionaryEntry
 }
 
-// Entry defines a composite interface for the complete account of a word
-type Entry interface {
-	WordEntry
-	DictionaryEntry
-	EtymologyEntry
-	ThesaurusEntry
-}
-
-// ComprehensiveDictionaryEntry defines a composite interface for a
-// comprehensive dictionary entry of a word
-type ComprehensiveDictionaryEntry interface {
-	DictionaryEntry
-	EtymologyEntry
-}
-
-// VersatileDictionaryEntry defines a composite interface for a versatile
-// dictionary entry of a word
-type VersatileDictionaryEntry interface {
-	DictionaryEntry
-	ThesaurusEntry
-}
-
 // WordEntry defines an interface for an entry of a specific word
 type WordEntry interface {
 	Word() string

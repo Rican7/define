@@ -10,7 +10,6 @@ import (
 // Enforce interface contracts
 var (
 	_ Result          = (*ResultValue)(nil)
-	_ Entry           = (*EntryValue)(nil)
 	_ WordEntry       = (*WordEntryValue)(nil)
 	_ DictionaryEntry = (*DictionaryEntryValue)(nil)
 	_ EtymologyEntry  = (*EtymologyEntryValue)(nil)
