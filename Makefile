@@ -28,7 +28,7 @@ GO_CLEAN_FLAGS ?= -i -r -x ${GO_BUILD_FLAGS}
 # Compilation flags
 XC_ARCHITECTURES ?= 386 amd64 arm arm64
 XC_OPERATING_SYSTEMS ?= linux darwin windows freebsd netbsd openbsd
-XC_OSARCHS ?= !darwin/arm !darwin/arm64
+XC_OSARCHS ?= !darwin/386 !darwin/arm
 GOX_BUILD_FLAGS ?= -verbose -ldflags="${GO_LD_FLAGS}" -arch="${XC_ARCHITECTURES}" -os="${XC_OPERATING_SYSTEMS}" -osarch="${XC_OSARCHS}" -output="${BUILD_DIR}/{{.Dir}}_{{.OS}}_{{.Arch}}"
 
 # Tool flags
