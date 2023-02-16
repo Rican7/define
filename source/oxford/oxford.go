@@ -18,7 +18,7 @@ const Name = "Oxford Dictionaries API"
 
 const (
 	// baseURLString is the base URL for all Oxford API interactions
-	baseURLString = "https://od-api.oxforddictionaries.com/api/v1/"
+	baseURLString = "https://od-api.oxforddictionaries.com/api/v2/"
 
 	entriesURLString = baseURLString + "entries/"
 
@@ -47,164 +47,383 @@ type api struct {
 // apiResult is a struct that defines the data structure for Oxford API results
 type apiResult struct {
 	Metadata struct {
-		Provider string
-	}
+	} `json:"metadata"`
 	Results []struct {
-		ID             string
-		Language       string
+		ID             string `json:"id"`
+		Language       string `json:"language"`
 		LexicalEntries []struct {
+			Compounds []struct {
+				Domains []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"domains"`
+				ID       string `json:"id"`
+				Language string `json:"language"`
+				Regions  []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"regions"`
+				Registers []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"registers"`
+				Text string `json:"text"`
+			} `json:"compounds"`
 			DerivativeOf []struct {
-				Domains   []string
-				ID        string
-				Language  string
-				Regions   []string
-				Registers []string
-				Text      string
-			}
+				Domains []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"domains"`
+				ID       string `json:"id"`
+				Language string `json:"language"`
+				Regions  []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"regions"`
+				Registers []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"registers"`
+				Text string `json:"text"`
+			} `json:"derivativeOf"`
 			Derivatives []struct {
-				Domains   []string
-				ID        string
-				Language  string
-				Regions   []string
-				Registers []string
-				Text      string
-			}
+				Domains []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"domains"`
+				ID       string `json:"id"`
+				Language string `json:"language"`
+				Regions  []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"regions"`
+				Registers []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"registers"`
+				Text string `json:"text"`
+			} `json:"derivatives"`
 			Entries []struct {
-				Etymologies         []string
+				CrossReferenceMarkers []string `json:"crossReferenceMarkers"`
+				CrossReferences       []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+					Type string `json:"type"`
+				} `json:"crossReferences"`
+				Etymologies         []string `json:"etymologies"`
 				GrammaticalFeatures []struct {
-					Text string
-					Type string
-				}
-				HomographNumber string
-				Notes           []struct {
-					ID   string
-					Text string
-					Type string
-				}
-				Pronunciations []struct {
-					AudioFile        string
-					Dialects         []string
-					PhoneticNotation string
-					PhoneticSpelling string
-					Regions          []string
-				}
-				Senses       []apiSense
-				VariantForms []struct {
-					Regions []string
-					Text    string
-				}
-			}
+					ID   string `json:"id"`
+					Text string `json:"text"`
+					Type string `json:"type"`
+				} `json:"grammaticalFeatures"`
+				HomographNumber string `json:"homographNumber"`
+				Inflections     []struct {
+					Domains []struct {
+						ID   string `json:"id"`
+						Text string `json:"text"`
+					} `json:"domains"`
+					GrammaticalFeatures []struct {
+						ID   string `json:"id"`
+						Text string `json:"text"`
+						Type string `json:"type"`
+					} `json:"grammaticalFeatures"`
+					InflectedForm   string `json:"inflectedForm"`
+					LexicalCategory struct {
+						ID   string `json:"id"`
+						Text string `json:"text"`
+					} `json:"lexicalCategory"`
+					Pronunciations []apiPronunciation `json:"pronunciations"`
+					Regions        []struct {
+						ID   string `json:"id"`
+						Text string `json:"text"`
+					} `json:"regions"`
+					Registers []struct {
+						ID   string `json:"id"`
+						Text string `json:"text"`
+					} `json:"registers"`
+				} `json:"inflections"`
+				Notes []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+					Type string `json:"type"`
+				} `json:"notes"`
+				Pronunciations []apiPronunciation `json:"pronunciations"`
+				Senses         []apiSense         `json:"senses"`
+				VariantForms   []struct {
+					Domains []struct {
+						ID   string `json:"id"`
+						Text string `json:"text"`
+					} `json:"domains"`
+					Notes []struct {
+						ID   string `json:"id"`
+						Text string `json:"text"`
+						Type string `json:"type"`
+					} `json:"notes"`
+					Pronunciations []apiPronunciation `json:"pronunciations"`
+					Regions        []struct {
+						ID   string `json:"id"`
+						Text string `json:"text"`
+					} `json:"regions"`
+					Registers []struct {
+						ID   string `json:"id"`
+						Text string `json:"text"`
+					} `json:"registers"`
+					Text string `json:"text"`
+				} `json:"variantForms"`
+			} `json:"entries"`
 			GrammaticalFeatures []struct {
-				Text string
-				Type string
-			}
-			Language        string
-			LexicalCategory string
-			Notes           []struct {
-				ID   string
-				Text string
-				Type string
-			}
-			Pronunciations []struct {
-				AudioFile        string
-				Dialects         []string
-				PhoneticNotation string
-				PhoneticSpelling string
-				Regions          []string
-			}
-			Text         string
-			VariantForms []struct {
-				Regions []string
-				Text    string
-			}
-		}
-		Pronunciations []struct {
-			AudioFile        string
-			Dialects         []string
-			PhoneticNotation string
-			PhoneticSpelling string
-			Regions          []string
-		}
-		Type string
-		Word string
-	}
+				ID   string `json:"id"`
+				Text string `json:"text"`
+				Type string `json:"type"`
+			} `json:"grammaticalFeatures"`
+			Language        string `json:"language"`
+			LexicalCategory struct {
+				ID   string `json:"id"`
+				Text string `json:"text"`
+			} `json:"lexicalCategory"`
+			Notes []struct {
+				ID   string `json:"id"`
+				Text string `json:"text"`
+				Type string `json:"type"`
+			} `json:"notes"`
+			PhrasalVerbs []struct {
+				Domains []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"domains"`
+				ID       string `json:"id"`
+				Language string `json:"language"`
+				Regions  []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"regions"`
+				Registers []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"registers"`
+				Text string `json:"text"`
+			} `json:"phrasalVerbs"`
+			Phrases []struct {
+				Domains []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"domains"`
+				ID       string `json:"id"`
+				Language string `json:"language"`
+				Regions  []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"regions"`
+				Registers []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"registers"`
+				Text string `json:"text"`
+			} `json:"phrases"`
+			Pronunciations []apiPronunciation `json:"pronunciations"`
+			Text           string             `json:"text"`
+			VariantForms   []struct {
+				Domains []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"domains"`
+				Notes []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+					Type string `json:"type"`
+				} `json:"notes"`
+				Pronunciations []apiPronunciation `json:"pronunciations"`
+				Regions        []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"regions"`
+				Registers []struct {
+					ID   string `json:"id"`
+					Text string `json:"text"`
+				} `json:"registers"`
+				Text string `json:"text"`
+			} `json:"variantForms"`
+		} `json:"lexicalEntries"`
+		Pronunciations []apiPronunciation `json:"pronunciations"`
+		Type           string             `json:"type"`
+		Word           string             `json:"word"`
+	} `json:"results"`
 }
 
 // apiSense is a struct that defines the data structure for Oxford API senses
 type apiSense struct {
-	CrossReferenceMarkers []string
-	CrossReferences       []struct {
-		ID   string
-		Text string
-		Type string
-	}
-	Definitions []string
-	Domains     []string
-	Examples    []struct {
-		Definitions []string
-		Domains     []string
-		Notes       []struct {
-			ID   string
-			Text string
-			Type string
-		}
-		Regions      []string
-		Registers    []string
-		SenseIds     []string
-		Text         string
-		Translations []struct {
-			Domains             []string
-			GrammaticalFeatures []struct {
-				Text string
-				Type string
-			}
-			Language string
-			Notes    []struct {
-				ID   string
-				Text string
-				Type string
-			}
-			Regions   []string
-			Registers []string
-			Text      string
-		}
-	}
-	ID    string
-	Notes []struct {
-		ID   string
-		Text string
-		Type string
-	}
-	Pronunciations []struct {
-		AudioFile        string
-		Dialects         []string
-		PhoneticNotation string
-		PhoneticSpelling string
-		Regions          []string
-	}
-	Regions      []string
-	Registers    []string
-	Subsenses    []apiSense
-	Translations []struct {
-		Domains             []string
-		GrammaticalFeatures []struct {
-			Text string
-			Type string
-		}
-		Language string
+	Antonyms []struct {
+		Domains []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"domains"`
+		ID       string `json:"id"`
+		Language string `json:"language"`
+		Regions  []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"regions"`
+		Registers []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"registers"`
+		Text string `json:"text"`
+	} `json:"antonyms"`
+	Constructions []struct {
+		Domains []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"domains"`
+		Examples [][]string `json:"examples"`
 		Notes    []struct {
-			ID   string
-			Text string
-			Type string
-		}
-		Regions   []string
-		Registers []string
-		Text      string
-	}
+			ID   string `json:"id"`
+			Text string `json:"text"`
+			Type string `json:"type"`
+		} `json:"notes"`
+		Regions []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"regions"`
+		Registers []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"registers"`
+		Text string `json:"text"`
+	} `json:"constructions"`
+	CrossReferenceMarkers []string `json:"crossReferenceMarkers"`
+	CrossReferences       []struct {
+		ID   string `json:"id"`
+		Text string `json:"text"`
+		Type string `json:"type"`
+	} `json:"crossReferences"`
+	Definitions []string `json:"definitions"`
+	Domains     []struct {
+		ID   string `json:"id"`
+		Text string `json:"text"`
+	} `json:"domains"`
+	Etymologies []string `json:"etymologies"`
+	Examples    []struct {
+		Definitions []string `json:"definitions"`
+		Domains     []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"domains"`
+		Notes []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+			Type string `json:"type"`
+		} `json:"notes"`
+		Regions []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"regions"`
+		Registers []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"registers"`
+		SenseIds []string `json:"senseIds"`
+		Text     string   `json:"text"`
+	} `json:"examples"`
+	ID          string `json:"id"`
+	Inflections []struct {
+		Domains []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"domains"`
+		GrammaticalFeatures []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+			Type string `json:"type"`
+		} `json:"grammaticalFeatures"`
+		InflectedForm   string `json:"inflectedForm"`
+		LexicalCategory struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"lexicalCategory"`
+		Pronunciations []apiPronunciation `json:"pronunciations"`
+		Regions        []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"regions"`
+		Registers []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"registers"`
+	} `json:"inflections"`
+	Notes []struct {
+		ID   string `json:"id"`
+		Text string `json:"text"`
+		Type string `json:"type"`
+	} `json:"notes"`
+	Pronunciations []apiPronunciation `json:"pronunciations"`
+	Regions        []struct {
+		ID   string `json:"id"`
+		Text string `json:"text"`
+	} `json:"regions"`
+	Registers []struct {
+		ID   string `json:"id"`
+		Text string `json:"text"`
+	} `json:"registers"`
+	ShortDefinitions []string   `json:"shortDefinitions"`
+	Subsenses        []apiSense `json:"subsenses"`
+	Synonyms         []struct {
+		Domains []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"domains"`
+		ID       string `json:"id"`
+		Language string `json:"language"`
+		Regions  []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"regions"`
+		Registers []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"registers"`
+		Text string `json:"text"`
+	} `json:"synonyms"`
+	ThesaurusLinks []struct {
+		EntryID string `json:"entry_id"`
+		SenseID string `json:"sense_id"`
+	} `json:"thesaurusLinks"`
 	VariantForms []struct {
-		Regions []string
-		Text    string
-	}
+		Domains []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"domains"`
+		Notes []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+			Type string `json:"type"`
+		} `json:"notes"`
+		Pronunciations []apiPronunciation `json:"pronunciations"`
+		Regions        []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"regions"`
+		Registers []struct {
+			ID   string `json:"id"`
+			Text string `json:"text"`
+		} `json:"registers"`
+		Text string `json:"text"`
+	} `json:"variantForms"`
+}
+
+// apiSense is a struct that defines the data structure for Oxford API pronunciation
+type apiPronunciation struct {
+	AudioFile        string   `json:"audioFile"`
+	Dialects         []string `json:"dialects"`
+	PhoneticNotation string   `json:"phoneticNotation"`
+	PhoneticSpelling string   `json:"phoneticSpelling"`
+	Regions          []struct {
+		ID   string `json:"id"`
+		Text string `json:"text"`
+	} `json:"regions"`
+	Registers []struct {
+		ID   string `json:"id"`
+		Text string `json:"text"`
+	} `json:"registers"`
 }
 
 // oxfordEntry is a struct that contains the entry types for this API
@@ -238,7 +457,7 @@ func (g *api) Name() string {
 // Define takes a word string and returns a dictionary source.Result
 func (g *api) Define(word string) (source.Result, error) {
 	// Prepare our URL
-	requestURL, err := url.Parse(entriesURLString + "en/" + word)
+	requestURL, err := url.Parse(entriesURLString + "en-us/" + word)
 
 	if err != nil {
 		return nil, err
@@ -309,7 +528,7 @@ func (r apiResult) toResult() source.Result {
 		}
 
 		entry.WordVal = lexicalEntry.Text
-		entry.CategoryVal = lexicalEntry.LexicalCategory
+		entry.CategoryVal = lexicalEntry.LexicalCategory.Text
 
 		for _, subEntry := range lexicalEntry.Entries {
 			entry.EtymologyVals = append(entry.EtymologyVals, subEntry.Etymologies...)
