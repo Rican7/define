@@ -19,21 +19,15 @@ jobs:
         go: ['1.19.x', '1.20.x']
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
     - name: Setup Go
       uses: actions/setup-go@v3
       with:
         go-version: ${{ matrix.go }}
-
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Load cached dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+        cache: true
+        cache-dependency-path: '**/go.sum' # Main module and tools submodule
 
     - name: Download dependencies
       run: make install-deps install-deps-dev
