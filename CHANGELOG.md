@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## vNext TODO
+
+### Features
+
+- New support for multiple word results for a definition lookup
+- Refactored internal data structures
+
+### Bug fixes
+
+- 
+
+
 ## 0.1.3
 
 ### Features
