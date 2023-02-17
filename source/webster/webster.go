@@ -133,13 +133,6 @@ type cleanableString struct {
 	cleaned string
 }
 
-// websterEntry contains the entry types for this API
-type websterEntry struct {
-	source.WordEntryValue
-	source.DictionaryEntryValue
-	source.EtymologyEntryValue
-}
-
 // Initialize the package
 func init() {
 	var err error
@@ -156,13 +149,14 @@ func New(httpClient http.Client, appKey string) source.Source {
 	return &api{&httpClient, appKey}
 }
 
-// Name returns the name of the source
+// Name returns the printable, human-readable name of the source.
 func (g *api) Name() string {
 	return Name
 }
 
-// Define takes a word string and returns a dictionary source.Result
-func (g *api) Define(word string) (source.Result, error) {
+// Define takes a word string and returns a list of dictionary results, and
+// an error if any occurred.
+func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(entriesURLString + word)
 	queryParams := apiURL.Query()
@@ -211,7 +205,7 @@ func (g *api) Define(word string) (source.Result, error) {
 		return nil, &source.EmptyResultError{Word: word}
 	}
 
-	return source.ValidateAndReturnResult(result.toResult())
+	return source.ValidateAndReturnDictionaryResults(word, result.toResults())
 }
 
 // UnmarshalXML customizes the way we can unmarshal our API definitions value
@@ -456,62 +450,67 @@ func (s *cleanableString) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 	return err
 }
 
-// toResult converts the proprietary API result to a generic source.Result
-func (r apiResult) toResult() source.Result {
+// toResult converts the API response to the results that a source expects to
+// return.
+func (r *apiResult) toResults() []source.DictionaryResult {
 	mainEntry := r.Entries[0]
 	mainWord := mainEntry.Word
 
-	entries := make([]interface{}, 0)
+	sourceEntries := make([]source.DictionaryEntry, 0, len(r.Entries))
 
 	for _, apiEntry := range r.Entries {
 		if !strings.EqualFold(apiEntry.Word, mainWord) {
 			continue
 		}
 
-		entry := &websterEntry{}
+		entry := source.DictionaryEntry{}
 
-		entry.WordVal = apiEntry.Word
-		entry.PronunciationVal = apiEntry.Pronunciation
-		entry.CategoryVal = apiEntry.LexicalCategory
+		entry.Word = apiEntry.Word
+		entry.LexicalCategory = apiEntry.LexicalCategory
 
-		entry.EtymologyVals = make([]string, len(apiEntry.Etymologies))
-		for i, etymology := range apiEntry.Etymologies {
+		if apiEntry.Pronunciation != "" {
+			entry.Pronunciations = []string{apiEntry.Pronunciation}
+		}
+
+		entry.Etymologies = make([]string, 0, len(apiEntry.Etymologies))
+		for _, etymology := range apiEntry.Etymologies {
 			etymology.cleaned = etymologyMetaStripperRegex.ReplaceAllString(etymology.cleaned, "")
 
-			entry.EtymologyVals[i] = strings.TrimSpace(etymology.cleaned)
+			entry.Etymologies = append(entry.Etymologies, strings.TrimSpace(etymology.cleaned))
 		}
 
 		if len(apiEntry.DefinitionContainers) > 0 {
 			def := apiEntry.DefinitionContainers[0]
 
 			for _, sense := range def.senses {
-				senseVal := sense.toSenseValue()
+				sourceSense := sense.toSense()
 
 				// Only go one level deep of sub-senses
 				for _, subSense := range sense.Subsenses {
-					senseVal.SubsenseVals = append(senseVal.SubsenseVals, subSense.toSenseValue())
+					sourceSense.SubSenses = append(sourceSense.SubSenses, subSense.toSense())
 				}
 
-				entry.SenseVals = append(entry.SenseVals, senseVal)
+				entry.Senses = append(entry.Senses, sourceSense)
 			}
 		}
 
-		entries = append(entries, entry)
+		sourceEntries = append(sourceEntries, entry)
 	}
 
-	return source.ResultValue{
-		Head:      mainWord,
-		Lang:      "en", // TODO
-		EntryVals: entries,
+	return []source.DictionaryResult{
+		{
+			Language: "en", // TODO
+			Entries:  sourceEntries,
+		},
 	}
 }
 
-// toSenseValue converts the proprietary API sense to a source.SenseValue
-func (s apiSense) toSenseValue() source.SenseValue {
-	return source.SenseValue{
-		DefinitionVals: s.Definitions,
-		ExampleVals:    s.Examples,
-		NoteVals:       s.Notes,
+// toSense converts the API sense to a source.Sense
+func (s *apiSense) toSense() source.Sense {
+	return source.Sense{
+		Definitions: s.Definitions,
+		Examples:    s.Examples,
+		Notes:       s.Notes,
 	}
 }
 

@@ -162,13 +162,13 @@ func printUsage(writer *defineio.PanicWriter) {
 }
 
 func defineWord(word string) {
-	result, err := src.Define(word)
+	results, err := src.Define(word)
 
-	handleError(err, source.ValidateResult(result))
+	handleError(err, source.ValidateDictionaryResults(word, results))
 
 	resultPrinter := printer.NewResultPrinter(stdOutWriter)
 
-	resultPrinter.PrintResult(result)
+	resultPrinter.PrintDictionaryResults(results)
 	resultPrinter.PrintSourceName(src)
 }
 

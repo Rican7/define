@@ -33,25 +33,25 @@ type InvalidResponseError struct {
 	httpResponse *http.Response
 }
 
-// ValidateResult validates the result and returns an error if invalid
-func ValidateResult(result Result) error {
-	if result == nil {
-		return &EmptyResultError{}
-	} else if len(result.Entries()) < 1 || result.Headword() == "" {
-		return &EmptyResultError{result.Headword()}
+// ValidateDictionaryResults validates the results of a define operation and
+// returns an error if they're invalid
+func ValidateDictionaryResults(word string, results []DictionaryResult) error {
+	if len(results) < 1 {
+		return &EmptyResultError{word}
 	}
 
 	return nil
 }
 
-// ValidateAndReturnResult validates the result and returns the result and a nil
-// error if valid. If invalid, it'll return a nil result and an error.
-func ValidateAndReturnResult(result Result) (Result, error) {
-	if err := ValidateResult(result); err != nil {
+// ValidateAndReturnDictionaryResults validates the results of a define
+// operation and returns the results and a nil error if valid. If invalid, it'll
+// return nil results and an error.
+func ValidateAndReturnDictionaryResults(word string, results []DictionaryResult) ([]DictionaryResult, error) {
+	if err := ValidateDictionaryResults(word, results); err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return results, nil
 }
 
 // ValidateHTTPResponse validates an HTTP response and returns an error if the

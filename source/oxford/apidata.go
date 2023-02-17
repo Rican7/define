@@ -1,5 +1,11 @@
 package oxford
 
+import (
+	"strings"
+
+	"github.com/Rican7/define/source"
+)
+
 // apiResponse defines the data structure for an Oxford API response
 type apiResponse struct {
 	Metadata struct {
@@ -141,4 +147,91 @@ type apiPronunciation struct {
 	PhoneticSpelling string      `json:"phoneticSpelling"`
 	Regions          []apiIDText `json:"regions"`
 	Registers        []apiIDText `json:"registers"`
+}
+
+// toResult converts the API response to the results that a source expects to
+// return.
+func (r *apiResponse) toResults() []source.DictionaryResult {
+	sourceResults := make([]source.DictionaryResult, 0, len(r.Results))
+
+	for _, result := range r.Results {
+		sourceEntries := make([]source.DictionaryEntry, 0, len(result.LexicalEntries))
+
+		for _, lexicalEntry := range result.LexicalEntries {
+			sourceEntry := lexicalEntry.toEntry()
+
+			sourceEntries = append(sourceEntries, sourceEntry)
+		}
+
+		sourceResults = append(
+			sourceResults,
+			source.DictionaryResult{
+				Language: result.Language,
+				Entries:  sourceEntries,
+			},
+		)
+	}
+
+	return sourceResults
+}
+
+// toEntry converts the API lexical entry to a source.DictionaryEntry
+func (e *apiLexicalEntry) toEntry() source.DictionaryEntry {
+	sourceEntry := source.DictionaryEntry{}
+
+	// We filter pronunciations and potentially add them later in sub-entries...
+	// so the capacity can't be reasonably known here.
+	sourceEntry.Pronunciations = make([]string, 0)
+
+	for _, pronunciation := range e.Pronunciations {
+		if strings.EqualFold(phoneticNotationIPAIdentifier, pronunciation.PhoneticNotation) {
+			sourceEntry.Pronunciations = append(sourceEntry.Pronunciations, pronunciation.PhoneticSpelling)
+		}
+	}
+
+	sourceEntry.Word = e.Text
+	sourceEntry.LexicalCategory = e.LexicalCategory.Text
+
+	for _, subEntry := range e.Entries {
+		sourceEntry.Etymologies = append(sourceEntry.Etymologies, subEntry.Etymologies...)
+
+		for _, pronunciation := range subEntry.Pronunciations {
+			if strings.EqualFold(phoneticNotationIPAIdentifier, pronunciation.PhoneticNotation) {
+				sourceEntry.Pronunciations = append(sourceEntry.Pronunciations, pronunciation.PhoneticSpelling)
+			}
+		}
+
+		for _, sense := range subEntry.Senses {
+			sourceSense := sense.toSense()
+
+			// Only go one level deep of sub-senses
+			for _, subSense := range sense.Subsenses {
+				sourceSense.SubSenses = append(sourceSense.SubSenses, subSense.toSense())
+			}
+
+			sourceEntry.Senses = append(sourceEntry.Senses, sourceSense)
+		}
+	}
+
+	return sourceEntry
+}
+
+// toSense converts the API sense to a source.Sense
+func (s *apiSense) toSense() source.Sense {
+	examples := make([]string, 0, len(s.Examples))
+	notes := make([]string, 0, len(s.Notes))
+
+	for _, example := range s.Examples {
+		examples = append(examples, example.Text)
+	}
+
+	for _, note := range s.Notes {
+		notes = append(notes, note.Text)
+	}
+
+	return source.Sense{
+		Definitions: s.Definitions,
+		Examples:    examples,
+		Notes:       notes,
+	}
 }

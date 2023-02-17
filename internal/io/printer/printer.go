@@ -42,36 +42,46 @@ func (p *ResultPrinter) PrintSourceName(src source.Source) {
 	})
 }
 
-// PrintResult prints a source.Result.
-func (p *ResultPrinter) PrintResult(result source.Result) {
+// PrintDictionaryResults prints a list of dictionary results
+func (p *ResultPrinter) PrintDictionaryResults(results []source.DictionaryResult) {
 	p.out.IndentWrites(func(writer *defineio.PanicWriter) {
-		writer.WritePaddedStringLine(getHeader(result), 1)
+		var lastWord string
 
-		for _, entry := range result.Entries() {
-			if entryHeader := getEntryHeader(result, entry); entryHeader != "" {
-				writer.WriteNewLine()
-				writer.WriteNewLine()
-				writer.WriteStringLine(entryHeader)
+		for _, result := range results {
+			resultHeader := getHeader(result)
+			writer.WritePaddedStringLine(resultHeader, 1)
+
+			var lastEntryHeader string
+			for _, entry := range result.Entries {
+				if entryHeader := getEntryHeader(resultHeader, lastEntryHeader, lastWord, entry); entryHeader != "" {
+					writer.WriteNewLine()
+					writer.WriteNewLine()
+					writer.WriteStringLine(entryHeader)
+
+					lastEntryHeader = entryHeader
+				}
+
+				writer.IndentWrites(func(writer *defineio.PanicWriter) {
+					printDictionaryEntry(writer, entry)
+				})
+
+				lastWord = entry.Word
 			}
 
-			writer.IndentWrites(func(writer *defineio.PanicWriter) {
-				printEntry(writer, entry)
-			})
+			writer.WriteNewLine()
 		}
-
-		writer.WriteNewLine()
 	})
 }
 
-func printEntry(writer *defineio.PanicWriter, entry source.DictionaryEntry) {
-	if wordEntry, isWordEntry := entry.(source.WordEntry); isWordEntry && wordEntry.Category() != "" {
-		writer.WritePaddedStringLine(fmt.Sprintf("(%s)", wordEntry.Category()), 1)
+func printDictionaryEntry(writer *defineio.PanicWriter, entry source.DictionaryEntry) {
+	if entry.LexicalCategory != "" {
+		writer.WritePaddedStringLine(fmt.Sprintf("(%s)", entry.LexicalCategory), 1)
 	}
 
-	for senseIndex, sense := range entry.Senses() {
+	for senseIndex, sense := range entry.Senses {
 		prefix := fmt.Sprintf("%d. ", senseIndex+1)
 
-		for defIndex, definition := range sense.Definitions() {
+		for defIndex, definition := range sense.Definitions {
 			// Change the prefix after the first definition
 			if 0 < defIndex {
 				prefix = " - "
@@ -81,46 +91,41 @@ func printEntry(writer *defineio.PanicWriter, entry source.DictionaryEntry) {
 		}
 
 		writer.IndentWritesBy(uint(len(prefix)), func(writer *defineio.PanicWriter) {
-			for _, examples := range sense.Examples() {
+			for _, examples := range sense.Examples {
 				writer.WriteStringLine(fmt.Sprintf("%q", examples))
 			}
 
-			for _, notes := range sense.Notes() {
+			for _, notes := range sense.Notes {
 				writer.WriteStringLine(fmt.Sprintf("[%s]", notes))
 			}
 		})
 
 		writer.IndentWrites(func(writer *defineio.PanicWriter) {
-			for _, subSense := range sense.Subsenses() {
+			for _, subSense := range sense.SubSenses {
 				prefix := " - "
 
-				for _, definition := range subSense.Definitions() {
+				for _, definition := range subSense.Definitions {
 					writer.WriteStringLine(prefix + definition)
 				}
 
 				writer.IndentWritesBy(uint(len(prefix)), func(writer *defineio.PanicWriter) {
-					if len(subSense.Examples()) > 0 {
-						writer.WriteStringLine(fmt.Sprintf("%q", subSense.Examples()[0]))
+					if len(subSense.Examples) > 0 {
+						writer.WriteStringLine(fmt.Sprintf("%q", subSense.Examples[0]))
 					}
 				})
 			}
 		})
 	}
 
-	if etymologyEntry, ok := entry.(source.EtymologyEntry); ok {
-		printEtymologyEntry(writer, etymologyEntry)
-	}
-
-	if thesaurusEntry, ok := entry.(source.ThesaurusEntry); ok {
-		printThesaurusEntry(writer, thesaurusEntry)
-	}
+	printEtymologies(writer, entry)
+	printThesaurusValues(writer, entry.ThesaurusValues)
 }
 
-func printEtymologyEntry(writer *defineio.PanicWriter, entry source.EtymologyEntry) {
-	if 0 < len(entry.Etymologies()) {
+func printEtymologies(writer *defineio.PanicWriter, entry source.DictionaryEntry) {
+	if 0 < len(entry.Etymologies) {
 		writer.WritePaddedStringLine(etymologyHeader, 1)
 
-		for _, etymology := range entry.Etymologies() {
+		for _, etymology := range entry.Etymologies {
 			writer.WriteStringLine(etymology)
 		}
 
@@ -128,52 +133,61 @@ func printEtymologyEntry(writer *defineio.PanicWriter, entry source.EtymologyEnt
 	}
 }
 
-func printThesaurusEntry(writer *defineio.PanicWriter, entry source.ThesaurusEntry) {
-	if 0 < len(entry.Synonyms()) {
+func printThesaurusValues(writer *defineio.PanicWriter, values source.ThesaurusValues) {
+	if 0 < len(values.Synonyms) {
 		writer.WritePaddedStringLine(synonymHeader, 1)
 
-		writer.WriteStringLine(strings.Join(entry.Synonyms(), " ; "))
+		writer.WriteStringLine(strings.Join(values.Synonyms, " ; "))
 
 		writer.WriteNewLine()
 	}
 
-	if 0 < len(entry.Antonyms()) {
+	if 0 < len(values.Antonyms) {
 		writer.WritePaddedStringLine(antonymHeader, 1)
 
-		writer.WriteStringLine(strings.Join(entry.Antonyms(), " ; "))
+		writer.WriteStringLine(strings.Join(values.Antonyms, " ; "))
 
 		writer.WriteNewLine()
 	}
 }
 
-func getHeader(result source.Result) string {
-	header := result.Headword()
+func getHeader(result source.DictionaryResult) string {
+	firstEntry := result.Entries[0]
+	header := firstEntry.Word
 
-	firstEntry := result.Entries()[0]
-
-	if firstEntry.Pronunciation() != "" || (isSameWord(result, firstEntry) && firstEntry.Pronunciation() != "") {
-		header = fmt.Sprintf("%s  /%s/", header, firstEntry.Pronunciation())
+	if len(firstEntry.Pronunciations) > 0 {
+		header = fmt.Sprintf("%s  %s", header, getPronunciationsText(firstEntry.Pronunciations))
 	}
 
 	return header
 }
 
-func getEntryHeader(result source.Result, entry source.DictionaryEntry) string {
+func getEntryHeader(resultHeader string, lastEntryHeader string, lastWord string, entry source.DictionaryEntry) string {
 	var header string
 
-	if wordEntry, isWordEntry := entry.(source.WordEntry); isWordEntry && !isSameWord(result, entry) {
-		if entry.Pronunciation() != "" {
-			header = fmt.Sprintf("%s  /%s/", wordEntry.Word(), entry.Pronunciation())
-		} else {
-			header = wordEntry.Word()
-		}
+	if len(entry.Pronunciations) > 0 {
+		header = fmt.Sprintf("%s  %s", entry.Word, getPronunciationsText(entry.Pronunciations))
+	} else if entry.Word != lastWord {
+		header = entry.Word
+	}
+
+	if header == resultHeader || header == lastEntryHeader {
+		return ""
 	}
 
 	return header
 }
 
-func isSameWord(result source.Result, entry source.DictionaryEntry) bool {
-	wordEntry, isWordEntry := entry.(source.WordEntry)
+func getPronunciationsText(pronunciations []string) string {
+	var pronunciationText string
 
-	return isWordEntry && wordEntry.Word() == result.Headword()
+	if len(pronunciations) > 0 {
+		pronunciationText = fmt.Sprintf("/%s/", pronunciations[0])
+	}
+
+	if len(pronunciations) > 1 {
+		pronunciationText = fmt.Sprintf("%s (/%s/)", pronunciationText, strings.Join(pronunciations[1:], "/ /"))
+	}
+
+	return pronunciationText
 }

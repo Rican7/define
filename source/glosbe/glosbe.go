@@ -72,12 +72,6 @@ type apiResult struct {
 	Dest   string
 }
 
-// glosbeEntry is a struct that contains the entry types for this API
-type glosbeEntry struct {
-	source.DictionaryEntryValue
-	source.ThesaurusEntryValue
-}
-
 // Initialize the package
 func init() {
 	var err error
@@ -102,13 +96,14 @@ func New(httpClient http.Client) source.Source {
 	return &api{&httpClient}
 }
 
-// Name returns the name of the source
+// Name returns the printable, human-readable name of the source.
 func (g *api) Name() string {
 	return Name
 }
 
-// Define takes a word string and returns a dictionary source.Result
-func (g *api) Define(word string) (source.Result, error) {
+// Define takes a word string and returns a list of dictionary results, and
+// an error if any occurred.
+func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 	// Prepare our URL
 	queryParams := apiURL.Query()
 	queryParams.Set(wordParameter, word)
@@ -148,17 +143,15 @@ func (g *api) Define(word string) (source.Result, error) {
 		return nil, &source.EmptyResultError{Word: word}
 	}
 
-	return source.ValidateAndReturnResult(result.toResult())
+	return source.ValidateAndReturnDictionaryResults(word, result.toResults())
 }
 
-// toResult converts the proprietary API result to a generic source.Result
-func (r apiResult) toResult() source.Result {
-	entry := glosbeEntry{
-		source.DictionaryEntryValue{},
-		source.ThesaurusEntryValue{},
-	}
+// toResult converts the API response to the results that a source expects to
+// return.
+func (r *apiResult) toResults() []source.DictionaryResult {
+	entry := source.DictionaryEntry{}
 
-	senses := make([]source.SenseValue, 0)
+	senses := make([]source.Sense, 0)
 
 	for _, item := range r.TUC {
 		// Entries are only valid definitions if they don't have a separate
@@ -167,21 +160,22 @@ func (r apiResult) toResult() source.Result {
 			for _, meaning := range item.Meanings {
 				definition := sanitize(meaning.Text)
 
-				sense := source.SenseValue{DefinitionVals: []string{definition}}
+				sense := source.Sense{Definitions: []string{definition}}
 
 				senses = append(senses, sense)
 			}
 		} else if item.Phrase != nil && item.Phrase.Text != "" {
-			entry.SynonymVals = append(entry.SynonymVals, item.Phrase.Text)
+			entry.Synonyms = append(entry.Synonyms, item.Phrase.Text)
 		}
 	}
 
-	entry.SenseVals = senses
+	entry.Senses = senses
 
-	return source.ResultValue{
-		Head:      r.Phrase,
-		Lang:      r.Dest,
-		EntryVals: []interface{}{entry},
+	return []source.DictionaryResult{
+		{
+			Language: r.Dest,
+			Entries:  []source.DictionaryEntry{entry},
+		},
 	}
 }
 
