@@ -17,42 +17,44 @@ var (
 
 func TestValidateResult(t *testing.T) {
 	testData := []struct {
-		result Result
+		word   string
+		result []DictionaryResult
 		want   error
 	}{
-		{result: nil, want: &EmptyResultError{}},
-		{result: ResultValue{EntryVals: []interface{}{DictionaryEntryValue{}}}, want: &EmptyResultError{}},
-		{result: ResultValue{Head: "test"}, want: &EmptyResultError{Word: "test"}},
-		{result: ResultValue{EntryVals: []interface{}{DictionaryEntryValue{}}, Head: "test"}, want: nil},
+		{word: "", result: nil, want: &EmptyResultError{}},
+		{word: "", result: []DictionaryResult{}, want: &EmptyResultError{}},
+		{word: "test", result: []DictionaryResult{}, want: &EmptyResultError{Word: "test"}},
+		{word: "test", result: []DictionaryResult{{Language: "test"}}, want: nil},
 	}
 
 	for _, tt := range testData {
-		if got := ValidateResult(tt.result); !reflect.DeepEqual(got, tt.want) {
-			t.Errorf("ValidateResult returned wrong value. Got %#v. Want %#v.", got, tt.want)
+		if got := ValidateDictionaryResults(tt.word, tt.result); !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("ValidateDictionaryResults returned wrong value. Got %#v. Want %#v.", got, tt.want)
 		}
 	}
 }
 
 func TestValidateAndReturnResult(t *testing.T) {
 	testData := []struct {
-		result  Result
+		word    string
+		result  []DictionaryResult
 		wantErr bool
 	}{
-		{result: nil, wantErr: true},
-		{result: &ResultValue{EntryVals: []interface{}{DictionaryEntryValue{}}}, wantErr: true},
-		{result: &ResultValue{Head: "test"}, wantErr: true},
-		{result: &ResultValue{EntryVals: []interface{}{DictionaryEntryValue{}}, Head: "test"}, wantErr: false},
+		{word: "", result: nil, wantErr: true},
+		{word: "", result: []DictionaryResult{}, wantErr: true},
+		{word: "test", result: []DictionaryResult{}, wantErr: true},
+		{word: "test", result: []DictionaryResult{{Language: "test"}}, wantErr: false},
 	}
 
 	for _, tt := range testData {
-		got, err := ValidateAndReturnResult(tt.result)
+		got, err := ValidateAndReturnDictionaryResults(tt.word, tt.result)
 
 		if (err != nil) != tt.wantErr {
-			t.Errorf("ValidateAndReturnResult returned an error when not expected. Got %#v.", err)
+			t.Errorf("ValidateAndReturnDictionaryResults returned an error when not expected. Got %#v.", err)
 		}
 
-		if !tt.wantErr && got != tt.result {
-			t.Errorf("ValidateAndReturnResult returned wrong value. Got %#v. Want %#v.", got, tt.result)
+		if !tt.wantErr && !reflect.DeepEqual(got, tt.result) {
+			t.Errorf("ValidateAndReturnDictionaryResults returned wrong value. Got %#v. Want %#v.", got, tt.result)
 		}
 	}
 }
