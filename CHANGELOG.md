@@ -12,6 +12,11 @@
 
 - 
 
+### Security
+
+- Updated dependencies for security issues
+    - CVE-2022-41723: https://github.com/golang/go/issues/57855
+
 
 ## 0.1.3
 
