@@ -6,6 +6,7 @@
 
 - New support for multiple word results for a definition lookup
 - Refactored internal data structures
+- Improved continuous integration caching
 
 ### Bug fixes
 
