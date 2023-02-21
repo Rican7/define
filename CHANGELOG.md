@@ -7,6 +7,7 @@
 - New support for multiple word results for a definition lookup
 - Refactored internal data structures
 - Improved continuous integration caching
+- Updated the Merriam-Webster Dictionary API source to use the new V3 API
 
 ### Bug fixes
 
