@@ -110,15 +110,15 @@ func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 		return nil, err
 	}
 
-	var result apiResponse
+	var response apiResponse
 
-	if err = json.Unmarshal(body, &result); err != nil {
+	if err = json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
 
-	if len(result.Results) < 1 {
+	if len(response.Results) < 1 {
 		return nil, &source.EmptyResultError{Word: word}
 	}
 
-	return source.ValidateAndReturnDictionaryResults(word, result.toResults())
+	return source.ValidateAndReturnDictionaryResults(word, response.toResults())
 }

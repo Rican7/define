@@ -54,8 +54,8 @@ type api struct {
 	httpClient *http.Client
 }
 
-// apiResult is a struct that defines the data structure for Glosbe API results
-type apiResult struct {
+// apiResponse defines the data structure for a Glosbe API response
+type apiResponse struct {
 	Result string
 	TUC    []*struct {
 		Meanings []*struct {
@@ -133,22 +133,22 @@ func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 		return nil, err
 	}
 
-	var result apiResult
+	var response apiResponse
 
-	if err = json.Unmarshal(body, &result); err != nil {
+	if err = json.Unmarshal(body, &response); err != nil {
 		return nil, err
 	}
 
-	if len(result.TUC) < 1 {
+	if len(response.TUC) < 1 {
 		return nil, &source.EmptyResultError{Word: word}
 	}
 
-	return source.ValidateAndReturnDictionaryResults(word, result.toResults())
+	return source.ValidateAndReturnDictionaryResults(word, response.toResults())
 }
 
 // toResult converts the API response to the results that a source expects to
 // return.
-func (r *apiResult) toResults() []source.DictionaryResult {
+func (r *apiResponse) toResults() []source.DictionaryResult {
 	entry := source.DictionaryEntry{}
 
 	senses := make([]source.Sense, 0)
