@@ -11,7 +11,7 @@
 
 ### Bug fixes
 
-- 
+- Fixed handling of text token cleaning in the Webster source
 
 ### Security
 
