@@ -33,7 +33,7 @@ var (
 	// Webster API text may contain "tokens", as documented:
 	//
 	// See https://www.dictionaryapi.com/products/json#sec-2.tokens
-	regexpWebsterTokens = regexp.MustCompile(`{.*?(?:\|(.*?)(?:\|\|?)?)?}`)
+	regexpWebsterTokens = regexp.MustCompile(`{.*?(?:\|(.*?)(?:\|.*?\|?)?)?}`)
 
 	// regexpWebsterSenseNumber is a regular expression for matching Webster API
 	// sense numbers.
