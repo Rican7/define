@@ -214,7 +214,7 @@ func (r apiDefinitionResults) toResults() []source.DictionaryResult {
 	for _, apiEntry := range r {
 		headword := cleanHeadword(apiEntry.Hwi.Hw)
 
-		if !strings.EqualFold(headword, mainWord) {
+		if !source.EqualFoldPlain(headword, mainWord) {
 			continue
 		}
 
