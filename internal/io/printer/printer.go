@@ -92,7 +92,7 @@ func printDictionaryEntry(writer *defineio.PanicWriter, entry source.DictionaryE
 
 		writer.IndentWritesBy(uint(len(prefix)), func(writer *defineio.PanicWriter) {
 			for _, examples := range sense.Examples {
-				writer.WriteStringLine(fmt.Sprintf("%q", examples))
+				writer.WriteStringLine(examples.String())
 			}
 
 			for _, notes := range sense.Notes {
@@ -110,7 +110,7 @@ func printDictionaryEntry(writer *defineio.PanicWriter, entry source.DictionaryE
 
 				writer.IndentWritesBy(uint(len(prefix)), func(writer *defineio.PanicWriter) {
 					if len(subSense.Examples) > 0 {
-						writer.WriteStringLine(fmt.Sprintf("%q", subSense.Examples[0]))
+						writer.WriteStringLine(subSense.Examples[0].String())
 					}
 				})
 			}
@@ -156,7 +156,7 @@ func getHeader(result source.DictionaryResult) string {
 	header := firstEntry.Word
 
 	if len(firstEntry.Pronunciations) > 0 {
-		header = fmt.Sprintf("%s  %s", header, getPronunciationsText(firstEntry.Pronunciations))
+		header = fmt.Sprintf("%s  %s", header, firstEntry.Pronunciations)
 	}
 
 	return header
@@ -166,7 +166,7 @@ func getEntryHeader(resultHeader string, lastEntryHeader string, lastWord string
 	var header string
 
 	if len(entry.Pronunciations) > 0 {
-		header = fmt.Sprintf("%s  %s", entry.Word, getPronunciationsText(entry.Pronunciations))
+		header = fmt.Sprintf("%s  %s", entry.Word, entry.Pronunciations)
 	} else if entry.Word != lastWord {
 		header = entry.Word
 	}
@@ -176,18 +176,4 @@ func getEntryHeader(resultHeader string, lastEntryHeader string, lastWord string
 	}
 
 	return header
-}
-
-func getPronunciationsText(pronunciations []string) string {
-	var pronunciationText string
-
-	if len(pronunciations) > 0 {
-		pronunciationText = fmt.Sprintf("/%s/", pronunciations[0])
-	}
-
-	if len(pronunciations) > 1 {
-		pronunciationText = fmt.Sprintf("%s (/%s/)", pronunciationText, strings.Join(pronunciations[1:], "/ /"))
-	}
-
-	return pronunciationText
 }

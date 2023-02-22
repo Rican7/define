@@ -72,11 +72,11 @@ func (r apiResponse) toResults() []source.DictionaryResult {
 	for _, result := range r {
 		sourceEntries := make([]source.DictionaryEntry, 0, len(result.Meanings))
 
-		var pronunciations []string
+		var pronunciations []source.Pronunciation
 		if result.Phonetic != "" {
 			pronunciation := cleanPhoneticText(result.Phonetic)
 
-			pronunciations = append(pronunciations, pronunciation)
+			pronunciations = append(pronunciations, source.Pronunciation(pronunciation))
 		}
 
 		for _, phonetic := range result.Phonetics {
@@ -86,8 +86,8 @@ func (r apiResponse) toResults() []source.DictionaryResult {
 
 			pronunciation := cleanPhoneticText(phonetic.Text)
 
-			if len(pronunciations) < 1 || pronunciations[0] != pronunciation {
-				pronunciations = append(pronunciations, pronunciation)
+			if len(pronunciations) < 1 || string(pronunciations[0]) != pronunciation {
+				pronunciations = append(pronunciations, source.Pronunciation(pronunciation))
 			}
 		}
 
@@ -140,14 +140,14 @@ func (v *apiThesaurusValues) toThesaurusValues() source.ThesaurusValues {
 // toSense converts the API definition to a source.Sense
 func (d *apiDefinition) toSense() source.Sense {
 	var definitions []string
-	var examples []string
+	var examples []source.AttributedText
 
 	if d.Definition != "" {
 		definitions = []string{d.Definition}
 	}
 
 	if d.Example != "" {
-		examples = []string{d.Example}
+		examples = []source.AttributedText{{Text: d.Example}}
 	}
 
 	return source.Sense{

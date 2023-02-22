@@ -2,7 +2,6 @@ package webster
 
 import (
 	"encoding/json"
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,6 +23,7 @@ const (
 	objectDataTagDefiningText       = "dt"
 	objectDataTagAttributionOfQuote = "aq"
 	objectDataTagAuthor             = "auth"
+	objectDataTagSource             = "source"
 )
 
 var (
@@ -141,6 +141,9 @@ type apiSenseNumber struct {
 	sub    string
 }
 
+// apiExample defines the data structure for a Webster API example
+type apiExample map[string]any
+
 // UnmarshalJSON satisfies the encoding/json.Unmarshaler interface
 func (r *apiRawResponse) UnmarshalJSON(data []byte) error {
 	var rawSlice []json.RawMessage
@@ -223,14 +226,11 @@ func (r apiDefinitionResults) toResults() []source.DictionaryResult {
 		sourceEntry.Word = headword
 		sourceEntry.LexicalCategory = apiEntry.Fl
 
-		sourceEntry.Pronunciations = make([]string, 0, len(apiEntry.Hwi.Prs))
+		sourceEntry.Pronunciations = make([]source.Pronunciation, 0, len(apiEntry.Hwi.Prs))
 		for _, pronunciation := range apiEntry.Hwi.Prs {
-			sourceEntry.Pronunciations = append(sourceEntry.Pronunciations, pronunciation.Mw)
+			sourceEntry.Pronunciations = append(sourceEntry.Pronunciations, source.Pronunciation(pronunciation.Mw))
 		}
 
-		// We filter etymologies and potentially add them later so the capacity
-		// can't be reasonably known here.
-		sourceEntry.Etymologies = make([]string, 0)
 		for _, etymology := range apiEntry.Et {
 			// Webster API etymologies are returned in prefixed arrays.
 			// See https://www.dictionaryapi.com/products/json#sec-2.et
@@ -308,7 +308,7 @@ func (s apiSenseSequence) toSenses() []source.Sense {
 // toSense converts the API sense data to a source.Sense
 func (d apiSenseData) toSense() source.Sense {
 	definitions := make([]string, 0)
-	examples := make([]string, 0)
+	examples := make([]source.AttributedText, 0)
 
 	senseDefinitions := d[objectDataTagDefiningText].([]any)
 
@@ -330,20 +330,9 @@ func (d apiSenseData) toSense() source.Sense {
 			exampleTextObjects := definition[1].([]any)
 
 			for _, exampleTextObject := range exampleTextObjects {
-				exampleTextMap := exampleTextObject.(map[string]any)
-				exampleText := cleanTextOfTokens(exampleTextMap[objectDataTagText].(string))
+				example := apiExample(exampleTextObject.(map[string]any))
 
-				if exampleTextMap[objectDataTagAttributionOfQuote] != nil {
-					exampleAttribution := exampleTextMap[objectDataTagAttributionOfQuote].(map[string]any)
-
-					// TODO: Handle attributions more generally... especially
-					// presentation wise...
-					if exampleAttribution[objectDataTagAuthor] != nil {
-						exampleText = fmt.Sprintf("'%s' - %s", exampleText, exampleAttribution[objectDataTagAuthor])
-					}
-				}
-
-				examples = append(examples, exampleText)
+				examples = append(examples, example.toAttributedText())
 			}
 		}
 	}
@@ -351,6 +340,36 @@ func (d apiSenseData) toSense() source.Sense {
 	return source.Sense{
 		Definitions: definitions,
 		Examples:    examples,
+	}
+}
+
+// toAttributedText converts the API example to a source.AttributedText
+func (e apiExample) toAttributedText() source.AttributedText {
+	exampleText := cleanTextOfTokens(e[objectDataTagText].(string))
+
+	var author, src string
+
+	if e[objectDataTagAttributionOfQuote] != nil {
+		exampleAttribution := e[objectDataTagAttributionOfQuote].(map[string]any)
+		apiAuthor := exampleAttribution[objectDataTagAuthor]
+		apiSource := exampleAttribution[objectDataTagSource]
+
+		if apiAuthor != nil {
+			author = cleanTextOfTokens(apiAuthor.(string))
+		}
+
+		if apiSource != nil {
+			src = cleanTextOfTokens(apiSource.(string))
+		}
+	}
+
+	return source.AttributedText{
+		Text: exampleText,
+
+		Attribution: source.Attribution{
+			Author: author,
+			Source: src,
+		},
 	}
 }
 
