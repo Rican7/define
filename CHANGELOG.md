@@ -7,6 +7,10 @@
 - Refactored internal data structures
 - Added support for showing a source of an example quote
 
+### Bug fixes
+
+- Fixed the source ambiguity of error messages
+
 
 ## 0.2.0
 
