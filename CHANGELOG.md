@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## vNext TODO
+## 0.2.0
 
 ### Features
 
