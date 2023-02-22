@@ -107,36 +107,39 @@ type apiSense struct {
 		Registers []apiIDText      `json:"registers"`
 		Text      string           `json:"text"`
 	} `json:"constructions"`
-	CrossReferenceMarkers []string         `json:"crossReferenceMarkers"`
-	CrossReferences       []apiTypedIDText `json:"crossReferences"`
-	Definitions           []string         `json:"definitions"`
-	DomainClasses         []apiIDText      `json:"domainClasses"`
-	Domains               []apiIDText      `json:"domains"`
-	Etymologies           []string         `json:"etymologies"`
-	Examples              []struct {
-		Definitions []string         `json:"definitions"`
-		Domains     []apiIDText      `json:"domains"`
-		Notes       []apiTypedIDText `json:"notes"`
-		Regions     []apiIDText      `json:"regions"`
-		Registers   []apiIDText      `json:"registers"`
-		SenseIds    []string         `json:"senseIds"`
-		Text        string           `json:"text"`
-	} `json:"examples"`
-	ID               string             `json:"id"`
-	Inflections      []apiInflection    `json:"inflections"`
-	Notes            []apiTypedIDText   `json:"notes"`
-	Pronunciations   []apiPronunciation `json:"pronunciations"`
-	Regions          []apiIDText        `json:"regions"`
-	Registers        []apiIDText        `json:"registers"`
-	SemanticClasses  []apiIDText        `json:"semanticClasses"`
-	ShortDefinitions []string           `json:"shortDefinitions"`
-	Subsenses        []apiSense         `json:"subsenses"`
-	Synonyms         []apiWordReference `json:"synonyms"`
-	ThesaurusLinks   []struct {
+	CrossReferenceMarkers []string            `json:"crossReferenceMarkers"`
+	CrossReferences       []apiTypedIDText    `json:"crossReferences"`
+	Definitions           []string            `json:"definitions"`
+	DomainClasses         []apiIDText         `json:"domainClasses"`
+	Domains               []apiIDText         `json:"domains"`
+	Etymologies           []string            `json:"etymologies"`
+	Examples              []apiComplexExample `json:"examples"`
+	ID                    string              `json:"id"`
+	Inflections           []apiInflection     `json:"inflections"`
+	Notes                 []apiTypedIDText    `json:"notes"`
+	Pronunciations        []apiPronunciation  `json:"pronunciations"`
+	Regions               []apiIDText         `json:"regions"`
+	Registers             []apiIDText         `json:"registers"`
+	SemanticClasses       []apiIDText         `json:"semanticClasses"`
+	ShortDefinitions      []string            `json:"shortDefinitions"`
+	Subsenses             []apiSense          `json:"subsenses"`
+	Synonyms              []apiWordReference  `json:"synonyms"`
+	ThesaurusLinks        []struct {
 		EntryID string `json:"entry_id"`
 		SenseID string `json:"sense_id"`
 	} `json:"thesaurusLinks"`
 	VariantForms []apiVariantForm `json:"variantForms"`
+}
+
+// apiComplexExample defines the data structure for an Oxford API "example"
+type apiComplexExample struct {
+	Definitions []string         `json:"definitions"`
+	Domains     []apiIDText      `json:"domains"`
+	Notes       []apiTypedIDText `json:"notes"`
+	Regions     []apiIDText      `json:"regions"`
+	Registers   []apiIDText      `json:"registers"`
+	SenseIds    []string         `json:"senseIds"`
+	Text        string           `json:"text"`
 }
 
 // apiPronunciation defines the data structure for an Oxford API "pronunciation"
@@ -179,13 +182,9 @@ func (r *apiResponse) toResults() []source.DictionaryResult {
 func (e *apiLexicalEntry) toEntry() source.DictionaryEntry {
 	sourceEntry := source.DictionaryEntry{}
 
-	// We filter pronunciations and potentially add them later in sub-entries...
-	// so the capacity can't be reasonably known here.
-	sourceEntry.Pronunciations = make([]string, 0)
-
 	for _, pronunciation := range e.Pronunciations {
 		if strings.EqualFold(phoneticNotationIPAIdentifier, pronunciation.PhoneticNotation) {
-			sourceEntry.Pronunciations = append(sourceEntry.Pronunciations, pronunciation.PhoneticSpelling)
+			sourceEntry.Pronunciations = append(sourceEntry.Pronunciations, source.Pronunciation(pronunciation.PhoneticSpelling))
 		}
 	}
 
@@ -197,7 +196,7 @@ func (e *apiLexicalEntry) toEntry() source.DictionaryEntry {
 
 		for _, pronunciation := range subEntry.Pronunciations {
 			if strings.EqualFold(phoneticNotationIPAIdentifier, pronunciation.PhoneticNotation) {
-				sourceEntry.Pronunciations = append(sourceEntry.Pronunciations, pronunciation.PhoneticSpelling)
+				sourceEntry.Pronunciations = append(sourceEntry.Pronunciations, source.Pronunciation(pronunciation.PhoneticSpelling))
 			}
 		}
 
@@ -218,11 +217,11 @@ func (e *apiLexicalEntry) toEntry() source.DictionaryEntry {
 
 // toSense converts the API sense to a source.Sense
 func (s *apiSense) toSense() source.Sense {
-	examples := make([]string, 0, len(s.Examples))
+	examples := make([]source.AttributedText, 0, len(s.Examples))
 	notes := make([]string, 0, len(s.Notes))
 
 	for _, example := range s.Examples {
-		examples = append(examples, example.Text)
+		examples = append(examples, example.toAttributedText())
 	}
 
 	for _, note := range s.Notes {
@@ -233,5 +232,12 @@ func (s *apiSense) toSense() source.Sense {
 		Definitions: s.Definitions,
 		Examples:    examples,
 		Notes:       notes,
+	}
+}
+
+// toAttributedText converts the API example to a source.AttributedText
+func (e *apiComplexExample) toAttributedText() source.AttributedText {
+	return source.AttributedText{
+		Text: e.Text,
 	}
 }
