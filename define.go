@@ -94,23 +94,36 @@ func init() {
 	handleError(err, flags.Parse(os.Args[1:]))
 }
 
-func handleError(err ...error) {
+func handleSourceError(source string, err ...error) {
 	for _, e := range err {
-		if e != nil {
-			msg := e.Error()
-
-			if len(msg) > 1 {
-				// Format the message
-				msg = strings.ToTitle(msg[:1]) + msg[1:]
-
-				stdErrWriter.IndentWrites(func(writer *defineio.PanicWriter) {
-					writer.WritePaddedStringLine(msg, 1)
-				})
-			}
-
-			quit(1)
+		if e == nil {
+			continue
 		}
+
+		msg := e.Error()
+
+		if len(msg) > 1 {
+			// Format the message
+			msg = strings.ToTitle(msg[:1]) + msg[1:]
+
+			stdErrWriter.IndentWrites(func(writer *defineio.PanicWriter) {
+				if source != "" {
+					sourceMessage := fmt.Sprintf("Source %q encountered an error.", source)
+
+					writer.WriteNewLine()
+					writer.WriteStringLine(sourceMessage)
+				}
+
+				writer.WritePaddedStringLine(msg, 1)
+			})
+		}
+
+		quit(1)
 	}
+}
+
+func handleError(err ...error) {
+	handleSourceError("", err...)
 }
 
 func quit(code int) {
@@ -164,7 +177,7 @@ func printUsage(writer *defineio.PanicWriter) {
 func defineWord(word string) {
 	results, err := src.Define(word)
 
-	handleError(err, source.ValidateDictionaryResults(word, results))
+	handleSourceError(src.Name(), err, source.ValidateDictionaryResults(word, results))
 
 	resultPrinter := printer.NewResultPrinter(stdOutWriter)
 
