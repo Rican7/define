@@ -14,11 +14,11 @@ const (
 	apiPhoneticsWrapper = '/'
 )
 
-// apiResponse defines the data structure for a Free Dictionary API response
-type apiResponse []apiResult
+// apiResponse defines the structure of a Free Dictionary API response
+type apiResponse []apiDefinitionResult
 
-// apiResult defines the data structure for a Free Dictionary API result
-type apiResult struct {
+// apiDefinitionResult defines the structure of a Free Dictionary API result
+type apiDefinitionResult struct {
 	Word       string         `json:"word"`
 	Phonetic   string         `json:"phonetic"`
 	Phonetics  []apiPhonetics `json:"phonetics"`
@@ -27,7 +27,7 @@ type apiResult struct {
 	SourceUrls []string       `json:"sourceUrls"`
 }
 
-// apiPhonetics defines the data structure for Free Dictionary API phonetics
+// apiPhonetics defines the structure of Free Dictionary API phonetics
 type apiPhonetics struct {
 	Text      string     `json:"text"`
 	Audio     string     `json:"audio"`
@@ -35,7 +35,7 @@ type apiPhonetics struct {
 	License   apiLicense `json:"license"`
 }
 
-// apiPhonetics defines the data structure for Free Dictionary API phonetics
+// apiPhonetics defines the structure of Free Dictionary API phonetics
 type apiMeaning struct {
 	PartOfSpeech string          `json:"partOfSpeech"`
 	Definitions  []apiDefinition `json:"definitions"`
@@ -43,7 +43,7 @@ type apiMeaning struct {
 	apiThesaurusValues
 }
 
-// apiDefinition defines the data structure for a Free Dictionary API definition
+// apiDefinition defines the structure of a Free Dictionary API definition
 type apiDefinition struct {
 	Definition string `json:"definition"`
 	Example    string `json:"example"`
@@ -51,14 +51,14 @@ type apiDefinition struct {
 	apiThesaurusValues
 }
 
-// apiThesaurusValues defines the data structure for Free Dictionary API
-// thesaurus values
+// apiThesaurusValues defines the structure of Free Dictionary API thesaurus
+// values
 type apiThesaurusValues struct {
 	Synonyms []string `json:"synonyms"`
 	Antonyms []string `json:"antonyms"`
 }
 
-// apiLicense defines the data structure for a Free Dictionary API license
+// apiLicense defines the structure of a Free Dictionary API license
 type apiLicense struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`

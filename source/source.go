@@ -26,13 +26,13 @@ type DictionaryResult struct {
 	Entries  []DictionaryEntry
 }
 
-// Entry defines the structure for an entry of a specific word
+// Entry defines the structure of an entry of a specific word
 type Entry struct {
 	Word            string
 	LexicalCategory string
 }
 
-// DictionaryEntry defines the structure for a dictionary entry of a word
+// DictionaryEntry defines the structure of a dictionary entry of a word
 type DictionaryEntry struct {
 	Entry
 
@@ -73,7 +73,7 @@ type Attribution struct {
 	Source string
 }
 
-// ThesaurusValues defines the structure for the thesaurus values of a word
+// ThesaurusValues defines the structure of the thesaurus values of a word
 type ThesaurusValues struct {
 	Synonyms []string // Words with similar meaning
 	Antonyms []string // Words with the opposite meaning
