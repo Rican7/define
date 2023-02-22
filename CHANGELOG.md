@@ -14,6 +14,7 @@
 
 - Fixed handling of text token cleaning in the Webster source
 - Fixed filering of results from the Webster source
+- Removed the no-longer functioning "Glosbe API" source
 
 ### Security
 
