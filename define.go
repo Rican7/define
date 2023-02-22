@@ -20,7 +20,6 @@ import (
 	flag "github.com/ogier/pflag"
 
 	_ "github.com/Rican7/define/source/freedictionaryapi"
-	_ "github.com/Rican7/define/source/glosbe"
 	"github.com/Rican7/define/source/oxford"
 	_ "github.com/Rican7/define/source/webster"
 )
