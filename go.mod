@@ -5,14 +5,7 @@ go 1.20
 require (
 	github.com/fatih/structs v1.1.0
 	github.com/imdario/mergo v0.3.13
-	github.com/microcosm-cc/bluemonday v1.0.22
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/ogier/pflag v0.0.0-20160129220114-45c278ab3607
 	golang.org/x/text v0.7.0
-)
-
-require (
-	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/gorilla/css v1.0.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
 )
