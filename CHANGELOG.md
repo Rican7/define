@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## vNext TODO
+
+### Features
+
+- Refactored internal data structures
+- Added support for showing a source of an example quote
+
+
 ## 0.2.0
 
 ### Features
