@@ -1,20 +1,38 @@
 package oxford
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/Rican7/define/source"
 )
 
-// apiResponse defines the data structure for an Oxford API response
-type apiResponse struct {
+// apiDefinitionResponse defines the structure of an Oxford API define response
+type apiDefinitionResponse struct {
 	Metadata struct {
+		Operation string `json:"operation"`
+		Provider  string `json:"provider"`
+		Schema    string `json:"schema"`
 	} `json:"metadata"`
-	Results []apiResult `json:"results"`
+	Results []apiDefinitionResult `json:"results"`
 }
 
-// apiResult defines the data structure for an Oxford API result
-type apiResult struct {
+// apiSearchResponse defines the structure of an Oxford API search response
+type apiSearchResponse struct {
+	Metadata struct {
+		Limit          string `json:"limit"`
+		Offset         string `json:"offset"`
+		Operation      string `json:"operation"`
+		Provider       string `json:"provider"`
+		Schema         string `json:"schema"`
+		SourceLanguage string `json:"sourceLanguage"`
+		Total          string `json:"total"`
+	} `json:"metadata"`
+	Results []apiSearchResult `json:"results"`
+}
+
+// apiDefinitionResult defines the structure of an Oxford API definition result
+type apiDefinitionResult struct {
 	ID             string             `json:"id"`
 	Language       string             `json:"language"`
 	LexicalEntries []apiLexicalEntry  `json:"lexicalEntries"`
@@ -23,7 +41,18 @@ type apiResult struct {
 	Word           string             `json:"word"`
 }
 
-// apiLexicalEntry defines the data structure for an Oxford API lexical entry
+// apiSearchResult defines the structure of an Oxford API search result
+type apiSearchResult struct {
+	ID          string  `json:"id"`
+	Label       string  `json:"label"`
+	MatchString string  `json:"matchString"`
+	MatchType   string  `json:"matchType"`
+	Region      string  `json:"region"`
+	Score       float64 `json:"score"`
+	Word        string  `json:"word"`
+}
+
+// apiLexicalEntry defines the structure of an Oxford API lexical entry
 type apiLexicalEntry struct {
 	Compounds    []apiWordReference `json:"compounds"`
 	DerivativeOf []apiWordReference `json:"derivativeOf"`
@@ -52,7 +81,7 @@ type apiLexicalEntry struct {
 	VariantForms        []apiVariantForm   `json:"variantForms"`
 }
 
-// apiWordReference defines the data structure for an Oxford API word reference
+// apiWordReference defines the structure of an Oxford API word reference
 type apiWordReference struct {
 	Domains   []apiIDText `json:"domains"`
 	ID        string      `json:"id"`
@@ -62,20 +91,20 @@ type apiWordReference struct {
 	Text      string      `json:"text"`
 }
 
-// apiIDText defines the data structure for an Oxford API text with ID
+// apiIDText defines the structure of an Oxford API text with ID
 type apiIDText struct {
 	ID   string `json:"id"`
 	Text string `json:"text"`
 }
 
-// apiTypedIDText defines the data structure for an Oxford API typed, ID'd text
+// apiTypedIDText defines the structure of an Oxford API typed, ID'd text
 type apiTypedIDText struct {
 	apiIDText
 
 	Type string `json:"type"`
 }
 
-// apiInflection defines the data structure for an Oxford API inflection
+// apiInflection defines the structure of an Oxford API inflection
 type apiInflection struct {
 	Domains             []apiIDText        `json:"domains"`
 	GrammaticalFeatures []apiTypedIDText   `json:"grammaticalFeatures"`
@@ -86,7 +115,7 @@ type apiInflection struct {
 	Registers           []apiIDText        `json:"registers"`
 }
 
-// apiVariantForm defines the data structure for an Oxford API variant form
+// apiVariantForm defines the structure of an Oxford API variant form
 type apiVariantForm struct {
 	Domains        []apiIDText        `json:"domains"`
 	Notes          []apiTypedIDText   `json:"notes"`
@@ -96,7 +125,7 @@ type apiVariantForm struct {
 	Text           string             `json:"text"`
 }
 
-// apiSense defines the data structure for an Oxford API "sense"
+// apiSense defines the structure of an Oxford API "sense"
 type apiSense struct {
 	Antonyms      []apiWordReference `json:"antonyms"`
 	Constructions []struct {
@@ -131,7 +160,7 @@ type apiSense struct {
 	VariantForms []apiVariantForm `json:"variantForms"`
 }
 
-// apiComplexExample defines the data structure for an Oxford API "example"
+// apiComplexExample defines the structure of an Oxford API "example"
 type apiComplexExample struct {
 	Definitions []string         `json:"definitions"`
 	Domains     []apiIDText      `json:"domains"`
@@ -142,7 +171,7 @@ type apiComplexExample struct {
 	Text        string           `json:"text"`
 }
 
-// apiPronunciation defines the data structure for an Oxford API "pronunciation"
+// apiPronunciation defines the structure of an Oxford API "pronunciation"
 type apiPronunciation struct {
 	AudioFile        string      `json:"audioFile"`
 	Dialects         []string    `json:"dialects"`
@@ -152,9 +181,9 @@ type apiPronunciation struct {
 	Registers        []apiIDText `json:"registers"`
 }
 
-// toResult converts the API response to the results that a source expects to
+// toResults converts the API response to the results that a source expects to
 // return.
-func (r *apiResponse) toResults() []source.DictionaryResult {
+func (r *apiDefinitionResponse) toResults() []source.DictionaryResult {
 	sourceResults := make([]source.DictionaryResult, 0, len(r.Results))
 
 	for _, result := range r.Results {
@@ -172,6 +201,30 @@ func (r *apiResponse) toResults() []source.DictionaryResult {
 				Language: result.Language,
 				Entries:  sourceEntries,
 			},
+		)
+	}
+
+	return sourceResults
+}
+
+// toResults converts the API response to the results that a source expects to
+// return.
+func (r *apiSearchResponse) toResults() []string {
+	apiResults := r.Results
+	sourceResults := make([]string, 0, len(r.Results))
+
+	// Sort the results by score
+	sort.Slice(
+		apiResults,
+		func(i, j int) bool {
+			return apiResults[i].Score < apiResults[i].Score
+		},
+	)
+
+	for _, apiResult := range apiResults {
+		sourceResults = append(
+			sourceResults,
+			apiResult.Label,
 		)
 	}
 

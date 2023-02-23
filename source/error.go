@@ -54,6 +54,27 @@ func ValidateAndReturnDictionaryResults(word string, results []DictionaryResult)
 	return results, nil
 }
 
+// ValidateSearchResults validates the results of a search operation and returns
+// an error if they're invalid
+func ValidateSearchResults(word string, results []string) error {
+	if len(results) < 1 {
+		return &EmptyResultError{word}
+	}
+
+	return nil
+}
+
+// ValidateAndReturnSearchResults validates the results of a search operation
+// and returns the results and a nil error if valid. If invalid, it'll return
+// nil results and an error.
+func ValidateAndReturnSearchResults(word string, results []string) ([]string, error) {
+	if err := ValidateSearchResults(word, results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 // ValidateHTTPResponse validates an HTTP response and returns an error if the
 // response is invalid
 func ValidateHTTPResponse(httpResponse *http.Response, validContentTypes []string, validStatusCodes []int) error {

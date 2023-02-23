@@ -45,10 +45,10 @@ var (
 	regexpWebsterSenseNumber = regexp.MustCompile(`(\d+)? ?(\w+)? ?(\(\d+\))?`)
 )
 
-// apiRawResponse defines the data structure for a raw Webster API response
+// apiRawResponse defines the structure of a raw Webster API response
 type apiRawResponse []any
 
-// apiResponse defines the data structure for a Webster API response
+// apiResponse defines the structure of a Webster API response
 type apiResponse[T apiResponseItem] []T
 
 // apiResponseItem defines a type constraint for Webster API response items
@@ -56,17 +56,16 @@ type apiResponseItem interface {
 	apiSearchResult | apiDefinitionResult
 }
 
-// apiSearchResults defines the data for Webster API search results
+// apiSearchResults defines the structure of Webster API search results
 type apiSearchResults []apiSearchResult
 
-// apiDefinitionResults defines the data for Webster API definition results
+// apiDefinitionResults defines the structure of Webster API definition results
 type apiDefinitionResults []apiDefinitionResult
 
-// apiSearchResult defines the data for a Webster API search result
+// apiSearchResult defines the structure of a Webster API search result
 type apiSearchResult string
 
-// apiDefinitionResult defines the data structure for a Webster API definition
-// result
+// apiDefinitionResult defines the structure of a Webster API definition result
 type apiDefinitionResult struct {
 	Meta apiDefinitionMeta         `json:"meta"`
 	Hom  int                       `json:"hom"`
@@ -93,7 +92,7 @@ type apiDefinitionResult struct {
 	Shortdef []string `json:"shortdef"`
 }
 
-// apiDefinitionMeta defines the data structure for Webster API definition meta
+// apiDefinitionMeta defines the structure of Webster API definition meta
 type apiDefinitionMeta struct {
 	ID        string   `json:"id"`
 	UUID      string   `json:"uuid"`
@@ -104,8 +103,8 @@ type apiDefinitionMeta struct {
 	Offensive bool     `json:"offensive"`
 }
 
-// apiDefinitionMeta defines the data structure for Webster API definition
-// headword information
+// apiDefinitionMeta defines the structure of Webster API definition headword
+// information
 type apiDefinitionHeadwordInfo struct {
 	Hw  string `json:"hw"`
 	Prs []struct {
@@ -118,30 +117,30 @@ type apiDefinitionHeadwordInfo struct {
 	} `json:"prs"`
 }
 
-// apiDefinitionSectionEntry defines the data structure for Webster API
-// definition section entries
+// apiDefinitionSectionEntry defines the structure of Webster API definition
+// section entries
 type apiDefinitionSectionEntry struct {
 	Vd   string           `json:"vd"`
 	Sseq apiSenseSequence `json:"sseq"`
 }
 
-// apiSenseSequence defines the data structure for a Webster API sense sequence
+// apiSenseSequence defines the structure of a Webster API sense sequence
 type apiSenseSequence []apiSense
 
-// apiSense defines the data structure for a Webster API sense
+// apiSense defines the structure of a Webster API sense
 type apiSense [][]any
 
-// apiSenseData defines the data structure for a Webster API sense data
+// apiSenseData defines the structure of a Webster API sense data
 type apiSenseData map[string]any
 
-// apiSenseNumber defines the data structure for a Webster API sense number
+// apiSenseNumber defines the structure of a Webster API sense number
 type apiSenseNumber struct {
 	number int
 	letter string
 	sub    string
 }
 
-// apiExample defines the data structure for a Webster API example
+// apiExample defines the structure of a Webster API example
 type apiExample map[string]any
 
 // UnmarshalJSON satisfies the encoding/json.Unmarshaler interface
@@ -256,6 +255,21 @@ func (r apiDefinitionResults) toResults() []source.DictionaryResult {
 			Entries:  sourceEntries,
 		},
 	}
+}
+
+// toResult converts the API response to the results that a source expects to
+// return.
+func (r apiSearchResults) toResults() []string {
+	sourceResults := make([]string, 0, len(r))
+
+	for _, apiResult := range r {
+		sourceResults = append(
+			sourceResults,
+			string(apiResult),
+		)
+	}
+
+	return sourceResults
 }
 
 // toSenses converts the API sense sequence to a list of source.Sense

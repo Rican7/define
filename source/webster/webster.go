@@ -56,17 +56,67 @@ func New(httpClient http.Client, appKey string) source.Source {
 }
 
 // Name returns the printable, human-readable name of the source.
-func (g *api) Name() string {
+func (a *api) Name() string {
 	return Name
 }
 
 // Define takes a word string and returns a list of dictionary results, and
 // an error if any occurred.
-func (g *api) Define(word string) ([]source.DictionaryResult, error) {
+func (a *api) Define(word string) ([]source.DictionaryResult, error) {
+	rawResponse, err := a.makeAPIRequest(word)
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch rawResponse[0].(type) {
+	case apiSearchResult:
+		// If we get back search results, then there wasn't a specific result
+		// for the given word.
+		return nil, &source.EmptyResultError{Word: word}
+	case apiDefinitionResult:
+		response := apiResponseFromRaw[apiDefinitionResult](rawResponse)
+		results := apiDefinitionResults(response).toResults()
+
+		return source.ValidateAndReturnDictionaryResults(word, results)
+	}
+
+	return nil, &source.EmptyResultError{Word: word}
+}
+
+// Search takes a word string and returns a list of found words, and an
+// error if any occurred.
+func (a *api) Search(word string, limit uint) ([]string, error) {
+	rawResponse, err := a.makeAPIRequest(word)
+
+	if err != nil {
+		return nil, err
+	}
+
+	switch rawResponse[0].(type) {
+	case apiDefinitionResult:
+		// If we get back definition results, then there was a specific result
+		// for the given word.
+		return nil, &source.EmptyResultError{Word: word}
+	case apiSearchResult:
+		response := apiResponseFromRaw[apiSearchResult](rawResponse)
+		results := apiSearchResults(response).toResults()
+
+		if limit > 1 && limit < uint(len(results)) {
+			results = results[:limit]
+		}
+
+		return source.ValidateAndReturnSearchResults(word, results)
+	}
+
+	return nil, &source.EmptyResultError{Word: word}
+}
+
+func (a *api) makeAPIRequest(word string) (apiRawResponse, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(entriesURLString + word)
 	queryParams := apiURL.Query()
-	queryParams.Set(httpRequestKeyQueryParamName, g.appKey)
+	queryParams.Set(httpRequestKeyQueryParamName, a.appKey)
 	requestURL.RawQuery = queryParams.Encode()
 
 	if err != nil {
@@ -81,7 +131,7 @@ func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 
 	httpRequest.Header.Set(httpRequestAcceptHeaderName, jsonMIMEType)
 
-	httpResponse, err := g.httpClient.Do(httpRequest)
+	httpResponse, err := a.httpClient.Do(httpRequest)
 
 	if err != nil {
 		return nil, err
@@ -109,19 +159,5 @@ func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 		return nil, &source.EmptyResultError{Word: word}
 	}
 
-	switch rawResponse[0].(type) {
-	case apiDefinitionResult:
-		response := apiResponseFromRaw[apiDefinitionResult](rawResponse)
-		results := apiDefinitionResults(response)
-
-		return source.ValidateAndReturnDictionaryResults(word, results.toResults())
-	case apiSearchResult:
-		response := apiResponseFromRaw[apiSearchResult](rawResponse)
-		_ = apiSearchResults(response)
-
-		// TODO: Handle a fallback search with a "did you mean?" error of sorts
-		return nil, &source.EmptyResultError{Word: word}
-	}
-
-	return nil, &source.EmptyResultError{Word: word}
+	return rawResponse, nil
 }
