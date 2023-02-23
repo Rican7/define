@@ -6,6 +6,8 @@
 
 - Refactored internal data structures
 - Added support for showing a source of an example quote
+- Added the optional capability for sources to expose a word search
+- Added automatic word search result display as a fallback for when define results come back empty
 
 ### Bug fixes
 
