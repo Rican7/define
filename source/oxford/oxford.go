@@ -73,7 +73,7 @@ func (a *api) Name() string {
 
 // Define takes a word string and returns a list of dictionary results, and
 // an error if any occurred.
-func (a *api) Define(word string) ([]source.DictionaryResult, error) {
+func (a *api) Define(word string) (source.DictionaryResults, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(entriesURLString + "en-us/" + word)
 
@@ -120,7 +120,7 @@ func (a *api) Define(word string) ([]source.DictionaryResult, error) {
 
 // Search takes a word string and returns a list of found words, and an
 // error if any occurred.
-func (a *api) Search(word string, limit uint) ([]string, error) {
+func (a *api) Search(word string, limit uint) (source.SearchResults, error) {
 	response, err := a.apiSearch(word, limit)
 
 	if err != nil {
@@ -186,7 +186,7 @@ func (a *api) apiSearch(word string, limit uint) (*apiSearchResponse, error) {
 	return &response, nil
 }
 
-func (a *api) apiSearchFallback(word string) ([]source.DictionaryResult, error) {
+func (a *api) apiSearchFallback(word string) (source.DictionaryResults, error) {
 	response, err := a.apiSearch(word, fallbackSearchResultLimit)
 
 	if err != nil {

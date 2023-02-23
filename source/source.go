@@ -16,15 +16,21 @@ type Source interface {
 
 	// Define takes a word string and returns a list of dictionary results, and
 	// an error if any occurred.
-	Define(word string) ([]DictionaryResult, error)
+	Define(word string) (DictionaryResults, error)
 }
 
 // Searcher defines an interface for a source that supports search capabilities
 type Searcher interface {
 	// Search takes a word string and returns a list of found words, and an
 	// error if any occurred.
-	Search(word string, limit uint) ([]string, error)
+	Search(word string, limit uint) (SearchResults, error)
 }
+
+// DictionaryResults defines the structure of a list of dictionary word results
+type DictionaryResults []DictionaryResult
+
+// SearchResults defines the structure of a list of word search results
+type SearchResults []SearchResult
 
 // DictionaryResult defines the structure of a dictionary word result in a
 // specific language
@@ -32,6 +38,9 @@ type DictionaryResult struct {
 	Language string
 	Entries  []DictionaryEntry
 }
+
+// SearchResult defines the structure of a word search result
+type SearchResult string
 
 // Entry defines the structure of an entry of a specific word
 type Entry struct {

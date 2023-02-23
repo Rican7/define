@@ -55,13 +55,13 @@ func New(httpClient http.Client) source.Source {
 }
 
 // Name returns the printable, human-readable name of the source.
-func (g *api) Name() string {
+func (a *api) Name() string {
 	return Name
 }
 
 // Define takes a word string and returns a list of dictionary results, and
 // an error if any occurred.
-func (g *api) Define(word string) ([]source.DictionaryResult, error) {
+func (a *api) Define(word string) (source.DictionaryResults, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(entriesURLString + "en/" + word)
 
@@ -77,7 +77,7 @@ func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 
 	httpRequest.Header.Set(httpRequestAcceptHeaderName, jsonMIMEType)
 
-	httpResponse, err := g.httpClient.Do(httpRequest)
+	httpResponse, err := a.httpClient.Do(httpRequest)
 
 	if err != nil {
 		return nil, err

@@ -66,8 +66,8 @@ type apiLicense struct {
 
 // toResult converts the API response to the results that a source expects to
 // return.
-func (r apiResponse) toResults() []source.DictionaryResult {
-	sourceResults := make([]source.DictionaryResult, 0, len(r))
+func (r apiResponse) toResults() source.DictionaryResults {
+	sourceResults := make(source.DictionaryResults, 0, len(r))
 
 	for _, result := range r {
 		sourceEntries := make([]source.DictionaryEntry, 0, len(result.Meanings))

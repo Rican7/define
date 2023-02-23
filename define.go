@@ -191,7 +191,7 @@ func defineWord(word string) {
 	searcher, isSearcher := src.(source.Searcher)
 
 	dictionaryResults, err := src.Define(word)
-	var searchResults []string
+	var searchResults source.SearchResults
 
 	if err == nil {
 		// Validate our results

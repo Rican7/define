@@ -43,7 +43,7 @@ func (p *ResultPrinter) PrintSourceName(src source.Source) {
 }
 
 // PrintDictionaryResults prints a list of dictionary results
-func (p *ResultPrinter) PrintDictionaryResults(results []source.DictionaryResult) {
+func (p *ResultPrinter) PrintDictionaryResults(results source.DictionaryResults) {
 	p.out.IndentWrites(func(writer *defineio.PanicWriter) {
 		var lastWord string
 
@@ -74,7 +74,7 @@ func (p *ResultPrinter) PrintDictionaryResults(results []source.DictionaryResult
 }
 
 // PrintSearchResults prints a list of search results
-func (p *ResultPrinter) PrintSearchResults(results []string) {
+func (p *ResultPrinter) PrintSearchResults(results source.SearchResults) {
 	p.out.IndentWrites(func(writer *defineio.PanicWriter) {
 		for index, result := range results {
 			writer.WriteStringLine(fmt.Sprintf("%d. %s", index+1, result))

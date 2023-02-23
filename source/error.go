@@ -35,7 +35,7 @@ type InvalidResponseError struct {
 
 // ValidateDictionaryResults validates the results of a define operation and
 // returns an error if they're invalid
-func ValidateDictionaryResults(word string, results []DictionaryResult) error {
+func ValidateDictionaryResults(word string, results DictionaryResults) error {
 	if len(results) < 1 {
 		return &EmptyResultError{word}
 	}
@@ -46,7 +46,7 @@ func ValidateDictionaryResults(word string, results []DictionaryResult) error {
 // ValidateAndReturnDictionaryResults validates the results of a define
 // operation and returns the results and a nil error if valid. If invalid, it'll
 // return nil results and an error.
-func ValidateAndReturnDictionaryResults(word string, results []DictionaryResult) ([]DictionaryResult, error) {
+func ValidateAndReturnDictionaryResults(word string, results DictionaryResults) (DictionaryResults, error) {
 	if err := ValidateDictionaryResults(word, results); err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func ValidateAndReturnDictionaryResults(word string, results []DictionaryResult)
 
 // ValidateSearchResults validates the results of a search operation and returns
 // an error if they're invalid
-func ValidateSearchResults(word string, results []string) error {
+func ValidateSearchResults(word string, results SearchResults) error {
 	if len(results) < 1 {
 		return &EmptyResultError{word}
 	}
@@ -67,7 +67,7 @@ func ValidateSearchResults(word string, results []string) error {
 // ValidateAndReturnSearchResults validates the results of a search operation
 // and returns the results and a nil error if valid. If invalid, it'll return
 // nil results and an error.
-func ValidateAndReturnSearchResults(word string, results []string) ([]string, error) {
+func ValidateAndReturnSearchResults(word string, results SearchResults) (SearchResults, error) {
 	if err := ValidateSearchResults(word, results); err != nil {
 		return nil, err
 	}

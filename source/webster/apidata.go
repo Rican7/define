@@ -207,7 +207,7 @@ func apiResponseFromRaw[T apiResponseItem](raw apiRawResponse) apiResponse[T] {
 
 // toResult converts the API response to the results that a source expects to
 // return.
-func (r apiDefinitionResults) toResults() []source.DictionaryResult {
+func (r apiDefinitionResults) toResults() source.DictionaryResults {
 	mainEntry := r[0]
 	mainWord := cleanHeadword(mainEntry.Hwi.Hw)
 
@@ -249,7 +249,7 @@ func (r apiDefinitionResults) toResults() []source.DictionaryResult {
 		sourceEntries = append(sourceEntries, sourceEntry)
 	}
 
-	return []source.DictionaryResult{
+	return source.DictionaryResults{
 		{
 			Language: "en", // TODO
 			Entries:  sourceEntries,
@@ -259,14 +259,13 @@ func (r apiDefinitionResults) toResults() []source.DictionaryResult {
 
 // toResult converts the API response to the results that a source expects to
 // return.
-func (r apiSearchResults) toResults() []string {
-	sourceResults := make([]string, 0, len(r))
+func (r apiSearchResults) toResults() source.SearchResults {
+	sourceResults := make(source.SearchResults, 0, len(r))
 
 	for _, apiResult := range r {
-		sourceResults = append(
-			sourceResults,
-			string(apiResult),
-		)
+		sourceResult := source.SearchResult(apiResult)
+
+		sourceResults = append(sourceResults, sourceResult)
 	}
 
 	return sourceResults
