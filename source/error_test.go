@@ -15,7 +15,7 @@ var (
 	_ error = (*InvalidResponseError)(nil)
 )
 
-func TestValidateResult(t *testing.T) {
+func TestValidateDictionaryResults(t *testing.T) {
 	testData := []struct {
 		word   string
 		result []DictionaryResult
@@ -34,7 +34,7 @@ func TestValidateResult(t *testing.T) {
 	}
 }
 
-func TestValidateAndReturnResult(t *testing.T) {
+func TestValidateAndReturnDictionaryResults(t *testing.T) {
 	testData := []struct {
 		word    string
 		result  []DictionaryResult
@@ -55,6 +55,50 @@ func TestValidateAndReturnResult(t *testing.T) {
 
 		if !tt.wantErr && !reflect.DeepEqual(got, tt.result) {
 			t.Errorf("ValidateAndReturnDictionaryResults returned wrong value. Got %#v. Want %#v.", got, tt.result)
+		}
+	}
+}
+
+func TestValidateSearchResults(t *testing.T) {
+	testData := []struct {
+		word   string
+		result []string
+		want   error
+	}{
+		{word: "", result: nil, want: &EmptyResultError{}},
+		{word: "", result: []string{}, want: &EmptyResultError{}},
+		{word: "test", result: []string{}, want: &EmptyResultError{Word: "test"}},
+		{word: "test", result: []string{"test"}, want: nil},
+	}
+
+	for _, tt := range testData {
+		if got := ValidateSearchResults(tt.word, tt.result); !reflect.DeepEqual(got, tt.want) {
+			t.Errorf("ValidateSearchResults returned wrong value. Got %#v. Want %#v.", got, tt.want)
+		}
+	}
+}
+
+func TestValidateAndReturnSearchResults(t *testing.T) {
+	testData := []struct {
+		word    string
+		result  []string
+		wantErr bool
+	}{
+		{word: "", result: nil, wantErr: true},
+		{word: "", result: []string{}, wantErr: true},
+		{word: "test", result: []string{}, wantErr: true},
+		{word: "test", result: []string{"test"}, wantErr: false},
+	}
+
+	for _, tt := range testData {
+		got, err := ValidateAndReturnSearchResults(tt.word, tt.result)
+
+		if (err != nil) != tt.wantErr {
+			t.Errorf("ValidateAndReturnSearchResults returned an error when not expected. Got %#v.", err)
+		}
+
+		if !tt.wantErr && !reflect.DeepEqual(got, tt.result) {
+			t.Errorf("ValidateAndReturnSearchResults returned wrong value. Got %#v. Want %#v.", got, tt.result)
 		}
 	}
 }
