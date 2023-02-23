@@ -29,6 +29,8 @@ const (
 	defaultConfigFileLocation = "~/.define.conf.json"
 	defaultIndentationSize    = 2
 	defaultPreferredSource    = oxford.JSONKey
+
+	fallbackSearchResultLimit = 5
 )
 
 var (
@@ -94,29 +96,40 @@ func init() {
 	handleError(err, flags.Parse(os.Args[1:]))
 }
 
+func formatErrorForPrinting(err error) string {
+	msg := err.Error()
+
+	msg = strings.ToTitle(msg[:1]) + msg[1:]
+
+	return msg
+}
+
+func printSourceError(source string, err error) {
+	msg := formatErrorForPrinting(err)
+
+	if len(msg) < 1 {
+		return
+	}
+
+	stdErrWriter.IndentWrites(func(writer *defineio.PanicWriter) {
+		if source != "" {
+			sourceMessage := fmt.Sprintf("Source %q encountered an error.", source)
+
+			writer.WriteNewLine()
+			writer.WriteStringLine(sourceMessage)
+		}
+
+		writer.WritePaddedStringLine(msg, 1)
+	})
+}
+
 func handleSourceError(source string, err ...error) {
 	for _, e := range err {
 		if e == nil {
 			continue
 		}
 
-		msg := e.Error()
-
-		if len(msg) > 1 {
-			// Format the message
-			msg = strings.ToTitle(msg[:1]) + msg[1:]
-
-			stdErrWriter.IndentWrites(func(writer *defineio.PanicWriter) {
-				if source != "" {
-					sourceMessage := fmt.Sprintf("Source %q encountered an error.", source)
-
-					writer.WriteNewLine()
-					writer.WriteStringLine(sourceMessage)
-				}
-
-				writer.WritePaddedStringLine(msg, 1)
-			})
-		}
+		printSourceError(source, e)
 
 		quit(1)
 	}
@@ -175,13 +188,43 @@ func printUsage(writer *defineio.PanicWriter) {
 }
 
 func defineWord(word string) {
-	results, err := src.Define(word)
+	searcher, isSearcher := src.(source.Searcher)
 
-	handleSourceError(src.Name(), err, source.ValidateDictionaryResults(word, results))
+	dictionaryResults, err := src.Define(word)
+	var searchResults []string
+
+	if err == nil {
+		// Validate our results
+		err = source.ValidateDictionaryResults(word, dictionaryResults)
+	}
+
+	emptyResultError, isEmptyDictionaryResult := err.(*source.EmptyResultError)
+
+	if isEmptyDictionaryResult && isSearcher {
+		searchResults, err = searcher.Search(word, fallbackSearchResultLimit)
+
+		if err == nil {
+			// Validate our results
+			err = source.ValidateSearchResults(word, searchResults)
+		}
+	}
+
+	handleSourceError(src.Name(), err)
 
 	resultPrinter := printer.NewResultPrinter(stdOutWriter)
 
-	resultPrinter.PrintDictionaryResults(results)
+	switch isEmptyDictionaryResult {
+	case true:
+		stdOutWriter.IndentWrites(func(writer *defineio.PanicWriter) {
+			writer.WritePaddedStringLine(formatErrorForPrinting(emptyResultError), 1)
+			writer.WritePaddedStringLine("Did you mean one of these?", 1)
+		})
+
+		resultPrinter.PrintSearchResults(searchResults)
+	case false:
+		resultPrinter.PrintDictionaryResults(dictionaryResults)
+	}
+
 	resultPrinter.PrintSourceName(src)
 }
 

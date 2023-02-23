@@ -19,6 +19,13 @@ type Source interface {
 	Define(word string) ([]DictionaryResult, error)
 }
 
+// Searcher defines an interface for a source that supports search capabilities
+type Searcher interface {
+	// Search takes a word string and returns a list of found words, and an
+	// error if any occurred.
+	Search(word string, limit uint) ([]string, error)
+}
+
 // DictionaryResult defines the structure of a dictionary word result in a
 // specific language
 type DictionaryResult struct {

@@ -73,6 +73,15 @@ func (p *ResultPrinter) PrintDictionaryResults(results []source.DictionaryResult
 	})
 }
 
+// PrintSearchResults prints a list of search results
+func (p *ResultPrinter) PrintSearchResults(results []string) {
+	p.out.IndentWrites(func(writer *defineio.PanicWriter) {
+		for index, result := range results {
+			writer.WriteStringLine(fmt.Sprintf("%d. %s", index+1, result))
+		}
+	})
+}
+
 func printDictionaryEntry(writer *defineio.PanicWriter, entry source.DictionaryEntry) {
 	if entry.LexicalCategory != "" {
 		writer.WritePaddedStringLine(fmt.Sprintf("(%s)", entry.LexicalCategory), 1)
