@@ -191,10 +191,15 @@ func (r *apiDefinitionResponse) toResults() source.DictionaryResults {
 	sourceResults := make(source.DictionaryResults, 0, len(r.Results))
 
 	for _, result := range r.Results {
+		word := result.Word
 		sourceEntries := make([]source.DictionaryEntry, 0, len(result.LexicalEntries))
 
 		for _, lexicalEntry := range result.LexicalEntries {
 			sourceEntry := lexicalEntry.toEntry()
+
+			if word == "" {
+				word = sourceEntry.Word
+			}
 
 			sourceEntries = append(sourceEntries, sourceEntry)
 		}
@@ -203,6 +208,7 @@ func (r *apiDefinitionResponse) toResults() source.DictionaryResults {
 			sourceResults,
 			source.DictionaryResult{
 				Language: result.Language,
+				Word:     word,
 				Entries:  sourceEntries,
 			},
 		)

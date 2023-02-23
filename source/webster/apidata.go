@@ -24,6 +24,13 @@ const (
 	objectDataTagAttributionOfQuote = "aq"
 	objectDataTagAuthor             = "auth"
 	objectDataTagSource             = "source"
+
+	// headwordSyllableSeparator defines the character used to separate
+	// syllables in headwords
+	headwordSyllableSeparator = '*'
+
+	// idSeparator defines the character used to separate data in IDs
+	idSeparator = ':'
 )
 
 var (
@@ -208,29 +215,60 @@ func apiResponseFromRaw[T apiResponseItem](raw apiRawResponse) apiResponse[T] {
 // toResult converts the API response to the results that a source expects to
 // return.
 func (r apiDefinitionResults) toResults() source.DictionaryResults {
-	mainEntry := r[0]
-	mainWord := cleanHeadword(mainEntry.Hwi.Hw)
+	primaryResult := r[0]
+	primaryID := getBaseOfID(primaryResult.Meta.ID)
+	primaryWord := cleanHeadword(primaryResult.Hwi.Hw)
 
-	sourceEntries := make([]source.DictionaryEntry, 0, len(r))
+	sourceResults := make(source.DictionaryResults, 0)
 
-	for _, apiEntry := range r {
-		headword := cleanHeadword(apiEntry.Hwi.Hw)
+	sourceResult := source.DictionaryResult{
+		Language: "en", // TODO
+	}
+	lastID := primaryID
+	lastWord := primaryWord
 
-		if !source.EqualFoldPlain(headword, mainWord) {
+	for _, apiResult := range r {
+		id := getBaseOfID(apiResult.Meta.ID)
+		headword := cleanHeadword(apiResult.Hwi.Hw)
+
+		if !source.EqualFoldPlain(headword, primaryWord) {
+			// The Webster API will return words (or even phrases) that are
+			// adjacent to the word searched for (ex: the query `tree` will
+			// return `tree ear`). The first ("primary") result should match the
+			// word queried for, though, so we'll filter out any words that
+			// don't match our primary word result.
 			continue
+		}
+
+		if id != lastID || headword != lastWord {
+			// The Webster API returns results in a flat structure, mixed with
+			// different entries of similar words AND completely different words
+			// with different spellings or even IDs. So we'll check the IDs and
+			// then treat a different ID or word (when compared to the previous)
+			// as a new result.
+			sourceResults = append(sourceResults, sourceResult)
+			sourceResult = source.DictionaryResult{
+				Language: sourceResult.Language, // TODO
+			}
+
+			lastID = id
+		}
+
+		if sourceResult.Word == "" {
+			sourceResult.Word = headword
 		}
 
 		sourceEntry := source.DictionaryEntry{}
 
 		sourceEntry.Word = headword
-		sourceEntry.LexicalCategory = apiEntry.Fl
+		sourceEntry.LexicalCategory = apiResult.Fl
 
-		sourceEntry.Pronunciations = make([]source.Pronunciation, 0, len(apiEntry.Hwi.Prs))
-		for _, pronunciation := range apiEntry.Hwi.Prs {
+		sourceEntry.Pronunciations = make([]source.Pronunciation, 0, len(apiResult.Hwi.Prs))
+		for _, pronunciation := range apiResult.Hwi.Prs {
 			sourceEntry.Pronunciations = append(sourceEntry.Pronunciations, source.Pronunciation(pronunciation.Mw))
 		}
 
-		for _, etymology := range apiEntry.Et {
+		for _, etymology := range apiResult.Et {
 			// Webster API etymologies are returned in prefixed arrays.
 			// See https://www.dictionaryapi.com/products/json#sec-2.et
 			if len(etymology) < 2 || etymology[0] != arrayDataTagText {
@@ -242,19 +280,17 @@ func (r apiDefinitionResults) toResults() source.DictionaryResults {
 			sourceEntry.Etymologies = append(sourceEntry.Etymologies, etymologyText)
 		}
 
-		for _, def := range apiEntry.Def {
+		for _, def := range apiResult.Def {
 			sourceEntry.Senses = append(sourceEntry.Senses, def.Sseq.toSenses()...)
 		}
 
-		sourceEntries = append(sourceEntries, sourceEntry)
+		sourceResult.Entries = append(sourceResult.Entries, sourceEntry)
 	}
 
-	return source.DictionaryResults{
-		{
-			Language: "en", // TODO
-			Entries:  sourceEntries,
-		},
-	}
+	// Add the last result
+	sourceResults = append(sourceResults, sourceResult)
+
+	return sourceResults
 }
 
 // toResult converts the API response to the results that a source expects to
@@ -387,7 +423,11 @@ func (e apiExample) toAttributedText() source.AttributedText {
 }
 
 func cleanHeadword(headword string) string {
-	return strings.ReplaceAll(headword, "*", "")
+	return strings.ReplaceAll(headword, string(headwordSyllableSeparator), "")
+}
+
+func getBaseOfID(id string) string {
+	return strings.Split(id, string(idSeparator))[0]
 }
 
 func cleanTextOfTokens(text string) string {

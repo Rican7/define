@@ -69,17 +69,17 @@ type apiLicense struct {
 func (r apiResponse) toResults() source.DictionaryResults {
 	sourceResults := make(source.DictionaryResults, 0, len(r))
 
-	for _, result := range r {
-		sourceEntries := make([]source.DictionaryEntry, 0, len(result.Meanings))
+	for _, apiResult := range r {
+		sourceEntries := make([]source.DictionaryEntry, 0, len(apiResult.Meanings))
 
 		var pronunciations []source.Pronunciation
-		if result.Phonetic != "" {
-			pronunciation := cleanPhoneticText(result.Phonetic)
+		if apiResult.Phonetic != "" {
+			pronunciation := cleanPhoneticText(apiResult.Phonetic)
 
 			pronunciations = append(pronunciations, source.Pronunciation(pronunciation))
 		}
 
-		for _, phonetic := range result.Phonetics {
+		for _, phonetic := range apiResult.Phonetics {
 			if phonetic.Text == "" {
 				continue
 			}
@@ -91,10 +91,10 @@ func (r apiResponse) toResults() source.DictionaryResults {
 			}
 		}
 
-		for _, apiMeaning := range result.Meanings {
+		for _, apiMeaning := range apiResult.Meanings {
 			sourceEntry := apiMeaning.toEntry()
 
-			sourceEntry.Word = result.Word
+			sourceEntry.Word = apiResult.Word
 			sourceEntry.Pronunciations = pronunciations
 
 			sourceEntries = append(sourceEntries, sourceEntry)
@@ -104,6 +104,7 @@ func (r apiResponse) toResults() source.DictionaryResults {
 			sourceResults,
 			source.DictionaryResult{
 				Language: "en", // TODO
+				Word:     apiResult.Word,
 				Entries:  sourceEntries,
 			},
 		)
