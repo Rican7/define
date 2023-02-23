@@ -7,6 +7,10 @@ import (
 	"github.com/Rican7/define/source"
 )
 
+const (
+	apiSearchResultMatchTypeInflection = "inflection"
+)
+
 // apiDefinitionResponse defines the structure of an Oxford API define response
 type apiDefinitionResponse struct {
 	Metadata struct {

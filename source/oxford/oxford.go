@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/Rican7/define/source"
 )
@@ -30,6 +31,8 @@ const (
 	httpRequestLimitQueryParamName        = "limit"
 
 	jsonMIMEType = "application/json"
+
+	fallbackSearchResultLimit = 10
 
 	phoneticNotationIPAIdentifier = "IPA"
 )
@@ -95,6 +98,10 @@ func (a *api) Define(word string) ([]source.DictionaryResult, error) {
 	defer httpResponse.Body.Close()
 
 	if err = validateResponse(word, httpResponse); err != nil {
+		if _, isEmptyResult := err.(*source.EmptyResultError); isEmptyResult {
+			return a.apiSearchFallback(word)
+		}
+
 		return nil, err
 	}
 
@@ -105,7 +112,7 @@ func (a *api) Define(word string) ([]source.DictionaryResult, error) {
 	}
 
 	if len(response.Results) < 1 {
-		return nil, &source.EmptyResultError{Word: word}
+		return a.apiSearchFallback(word)
 	}
 
 	return source.ValidateAndReturnDictionaryResults(word, response.toResults())
@@ -114,6 +121,22 @@ func (a *api) Define(word string) ([]source.DictionaryResult, error) {
 // Search takes a word string and returns a list of found words, and an
 // error if any occurred.
 func (a *api) Search(word string, limit uint) ([]string, error) {
+	response, err := a.apiSearch(word, limit)
+
+	if err != nil {
+		return nil, err
+	}
+
+	results := response.toResults()
+
+	if limit > 1 && limit < uint(len(results)) {
+		results = results[:limit]
+	}
+
+	return source.ValidateAndReturnSearchResults(word, results)
+}
+
+func (a *api) apiSearch(word string, limit uint) (*apiSearchResponse, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(searchURLString + "en-us")
 
@@ -160,13 +183,36 @@ func (a *api) Search(word string, limit uint) ([]string, error) {
 		return nil, &source.EmptyResultError{Word: word}
 	}
 
-	results := response.toResults()
+	return &response, nil
+}
 
-	if limit > 1 && limit < uint(len(results)) {
-		results = results[:limit]
+func (a *api) apiSearchFallback(word string) ([]source.DictionaryResult, error) {
+	response, err := a.apiSearch(word, fallbackSearchResultLimit)
+
+	if err != nil {
+		return nil, err
 	}
 
-	return source.ValidateAndReturnSearchResults(word, results)
+	if len(response.Results) < 1 {
+		return nil, &source.EmptyResultError{Word: word}
+	}
+
+	var fallbackWord string
+
+	for _, apiSearchResult := range response.Results {
+		// Look for our first inflection result
+		if apiSearchResult.MatchType == apiSearchResultMatchTypeInflection {
+			fallbackWord = apiSearchResult.Label
+			break
+		}
+	}
+
+	if strings.EqualFold(word, fallbackWord) {
+		// Prevent matching against the same word
+		return nil, &source.EmptyResultError{Word: word}
+	}
+
+	return a.Define(fallbackWord)
 }
 
 func (a *api) signRequest(request *http.Request) {
