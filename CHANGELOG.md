@@ -8,6 +8,7 @@
 - Added support for showing a source of an example quote
 - Added the optional capability for sources to expose a word search
 - Added automatic word search result display as a fallback for when define results come back empty
+- Added automatic inflection correction fallback to the Oxford source, to align behaviors closer to the other sources (and to improve the user experience)
 
 ### Bug fixes
 
