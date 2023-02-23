@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/Rican7/define/source"
 )
@@ -20,10 +21,13 @@ const (
 	baseURLString = "https://od-api.oxforddictionaries.com/api/v2/"
 
 	entriesURLString = baseURLString + "entries/"
+	searchURLString  = baseURLString + "search/"
 
-	httpRequestAcceptHeaderName = "Accept"
-	httpRequestAppIDHeaderName  = "app_id"
-	httpRequestAppKeyHeaderName = "app_key"
+	httpRequestAcceptHeaderName           = "Accept"
+	httpRequestAppIDHeaderName            = "app_id"
+	httpRequestAppKeyHeaderName           = "app_key"
+	httpRequestSearchStringQueryParamName = "q"
+	httpRequestLimitQueryParamName        = "limit"
 
 	jsonMIMEType = "application/json"
 
@@ -60,13 +64,13 @@ func New(httpClient http.Client, appID, appKey string) source.Source {
 }
 
 // Name returns the printable, human-readable name of the source.
-func (g *api) Name() string {
+func (a *api) Name() string {
 	return Name
 }
 
 // Define takes a word string and returns a list of dictionary results, and
 // an error if any occurred.
-func (g *api) Define(word string) ([]source.DictionaryResult, error) {
+func (a *api) Define(word string) ([]source.DictionaryResult, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(entriesURLString + "en-us/" + word)
 
@@ -80,11 +84,9 @@ func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 		return nil, err
 	}
 
-	httpRequest.Header.Set(httpRequestAcceptHeaderName, jsonMIMEType)
-	httpRequest.Header.Set(httpRequestAppIDHeaderName, g.appID)
-	httpRequest.Header.Set(httpRequestAppKeyHeaderName, g.appKey)
+	a.signRequest(httpRequest)
 
-	httpResponse, err := g.httpClient.Do(httpRequest)
+	httpResponse, err := a.httpClient.Do(httpRequest)
 
 	if err != nil {
 		return nil, err
@@ -92,27 +94,13 @@ func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 
 	defer httpResponse.Body.Close()
 
-	if http.StatusNotFound == httpResponse.StatusCode {
-		return nil, &source.EmptyResultError{Word: word}
-	}
-
-	if http.StatusForbidden == httpResponse.StatusCode {
-		return nil, &source.AuthenticationError{}
-	}
-
-	if err = source.ValidateHTTPResponse(httpResponse, validMIMETypes, nil); err != nil {
+	if err = validateResponse(word, httpResponse); err != nil {
 		return nil, err
 	}
 
-	body, err := io.ReadAll(httpResponse.Body)
+	var response apiDefinitionResponse
 
-	if err != nil {
-		return nil, err
-	}
-
-	var response apiResponse
-
-	if err = json.Unmarshal(body, &response); err != nil {
+	if err = decodeResponseData(httpResponse.Body, &response); err != nil {
 		return nil, err
 	}
 
@@ -121,4 +109,97 @@ func (g *api) Define(word string) ([]source.DictionaryResult, error) {
 	}
 
 	return source.ValidateAndReturnDictionaryResults(word, response.toResults())
+}
+
+// Search takes a word string and returns a list of found words, and an
+// error if any occurred.
+func (a *api) Search(word string, limit uint) ([]string, error) {
+	// Prepare our URL
+	requestURL, err := url.Parse(searchURLString + "en-us")
+
+	queryParams := apiURL.Query()
+	queryParams.Set(httpRequestSearchStringQueryParamName, word)
+
+	if limit > 0 {
+		queryParams.Set(httpRequestLimitQueryParamName, strconv.FormatUint(uint64(limit), 10))
+	}
+
+	requestURL.RawQuery = queryParams.Encode()
+
+	if err != nil {
+		return nil, err
+	}
+
+	httpRequest, err := http.NewRequest(http.MethodGet, apiURL.ResolveReference(requestURL).String(), nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	a.signRequest(httpRequest)
+
+	httpResponse, err := a.httpClient.Do(httpRequest)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer httpResponse.Body.Close()
+
+	if err = validateResponse(word, httpResponse); err != nil {
+		return nil, err
+	}
+
+	var response apiSearchResponse
+
+	if err = decodeResponseData(httpResponse.Body, &response); err != nil {
+		return nil, err
+	}
+
+	if len(response.Results) < 1 {
+		return nil, &source.EmptyResultError{Word: word}
+	}
+
+	results := response.toResults()
+
+	if limit > 1 && limit < uint(len(results)) {
+		results = results[:limit]
+	}
+
+	return source.ValidateAndReturnSearchResults(word, results)
+}
+
+func (a *api) signRequest(request *http.Request) {
+	request.Header.Set(httpRequestAcceptHeaderName, jsonMIMEType)
+	request.Header.Set(httpRequestAppIDHeaderName, a.appID)
+	request.Header.Set(httpRequestAppKeyHeaderName, a.appKey)
+}
+
+func validateResponse(word string, response *http.Response) error {
+	switch response.StatusCode {
+	case http.StatusNotFound:
+		return &source.EmptyResultError{Word: word}
+	case http.StatusForbidden:
+		return &source.AuthenticationError{}
+	}
+
+	if err := source.ValidateHTTPResponse(response, validMIMETypes, nil); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func decodeResponseData(data io.Reader, into any) error {
+	body, err := io.ReadAll(data)
+
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(body, into); err != nil {
+		return err
+	}
+
+	return nil
 }

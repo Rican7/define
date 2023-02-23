@@ -1,16 +1,34 @@
 package oxford
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/Rican7/define/source"
 )
 
-// apiResponse defines the structure of an Oxford API response
-type apiResponse struct {
+// apiDefinitionResponse defines the structure of an Oxford API define response
+type apiDefinitionResponse struct {
 	Metadata struct {
+		Operation string `json:"operation"`
+		Provider  string `json:"provider"`
+		Schema    string `json:"schema"`
 	} `json:"metadata"`
 	Results []apiDefinitionResult `json:"results"`
+}
+
+// apiSearchResponse defines the structure of an Oxford API search response
+type apiSearchResponse struct {
+	Metadata struct {
+		Limit          string `json:"limit"`
+		Offset         string `json:"offset"`
+		Operation      string `json:"operation"`
+		Provider       string `json:"provider"`
+		Schema         string `json:"schema"`
+		SourceLanguage string `json:"sourceLanguage"`
+		Total          string `json:"total"`
+	} `json:"metadata"`
+	Results []apiSearchResult `json:"results"`
 }
 
 // apiDefinitionResult defines the structure of an Oxford API definition result
@@ -21,6 +39,17 @@ type apiDefinitionResult struct {
 	Pronunciations []apiPronunciation `json:"pronunciations"`
 	Type           string             `json:"type"`
 	Word           string             `json:"word"`
+}
+
+// apiSearchResult defines the structure of an Oxford API search result
+type apiSearchResult struct {
+	ID          string  `json:"id"`
+	Label       string  `json:"label"`
+	MatchString string  `json:"matchString"`
+	MatchType   string  `json:"matchType"`
+	Region      string  `json:"region"`
+	Score       float64 `json:"score"`
+	Word        string  `json:"word"`
 }
 
 // apiLexicalEntry defines the structure of an Oxford API lexical entry
@@ -152,9 +181,9 @@ type apiPronunciation struct {
 	Registers        []apiIDText `json:"registers"`
 }
 
-// toResult converts the API response to the results that a source expects to
+// toResults converts the API response to the results that a source expects to
 // return.
-func (r *apiResponse) toResults() []source.DictionaryResult {
+func (r *apiDefinitionResponse) toResults() []source.DictionaryResult {
 	sourceResults := make([]source.DictionaryResult, 0, len(r.Results))
 
 	for _, result := range r.Results {
@@ -172,6 +201,30 @@ func (r *apiResponse) toResults() []source.DictionaryResult {
 				Language: result.Language,
 				Entries:  sourceEntries,
 			},
+		)
+	}
+
+	return sourceResults
+}
+
+// toResults converts the API response to the results that a source expects to
+// return.
+func (r *apiSearchResponse) toResults() []string {
+	apiResults := r.Results
+	sourceResults := make([]string, 0, len(r.Results))
+
+	// Sort the results by score
+	sort.Slice(
+		apiResults,
+		func(i, j int) bool {
+			return apiResults[i].Score < apiResults[i].Score
+		},
+	)
+
+	for _, apiResult := range apiResults {
+		sourceResults = append(
+			sourceResults,
+			apiResult.Label,
 		)
 	}
 
