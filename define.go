@@ -222,6 +222,8 @@ func defineWord(word string) {
 
 		resultPrinter.PrintSearchResults(searchResults)
 	case false:
+		dictionaryResults.SortForPrimaryResult(word)
+
 		resultPrinter.PrintDictionaryResults(dictionaryResults)
 	}
 
