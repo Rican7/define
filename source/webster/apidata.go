@@ -257,6 +257,21 @@ func (r apiDefinitionResults) toResults() []source.DictionaryResult {
 	}
 }
 
+// toResult converts the API response to the results that a source expects to
+// return.
+func (r apiSearchResults) toResults() []string {
+	sourceResults := make([]string, 0, len(r))
+
+	for _, apiResult := range r {
+		sourceResults = append(
+			sourceResults,
+			string(apiResult),
+		)
+	}
+
+	return sourceResults
+}
+
 // toSenses converts the API sense sequence to a list of source.Sense
 func (s apiSenseSequence) toSenses() []source.Sense {
 	senses := make([]source.Sense, 0)
