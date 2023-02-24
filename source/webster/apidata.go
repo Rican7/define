@@ -17,13 +17,14 @@ const (
 	arrayDataTagVerbalIllustrations = "vis"
 
 	// See https://www.dictionaryapi.com/products/json#sec-2
-	objectDataTagText               = "t"
-	objectDataTagSense              = "sense"
-	objectDataTagSenseNumber        = "sn"
-	objectDataTagDefiningText       = "dt"
-	objectDataTagAttributionOfQuote = "aq"
-	objectDataTagAuthor             = "auth"
-	objectDataTagSource             = "source"
+	objectDataTagText                = "t"
+	objectDataTagSense               = "sense"
+	objectDataTagSenseNumber         = "sn"
+	objectDataTagSubjectStatusLabels = "sls"
+	objectDataTagDefiningText        = "dt"
+	objectDataTagAttributionOfQuote  = "aq"
+	objectDataTagAuthor              = "auth"
+	objectDataTagSource              = "source"
 
 	// headwordSyllableSeparator defines the character used to separate
 	// syllables in headwords
@@ -122,6 +123,7 @@ type apiDefinitionHeadwordInfo struct {
 			Stat  string `json:"stat"`
 		} `json:"sound"`
 	} `json:"prs"`
+	Psl string `json:"psl"`
 }
 
 // apiDefinitionSectionEntry defines the structure of Webster API definition
@@ -386,8 +388,16 @@ func (d apiSenseData) toSense() source.Sense {
 		}
 	}
 
+	categories := make([]string, 0)
+	if senseSubjectStatusLabels, ok := d[objectDataTagSubjectStatusLabels].([]any); ok {
+		for _, senseSubjectStatusLabel := range senseSubjectStatusLabels {
+			categories = append(categories, senseSubjectStatusLabel.(string))
+		}
+	}
+
 	return source.Sense{
 		Definitions: definitions,
+		Categories:  categories,
 		Examples:    examples,
 	}
 }

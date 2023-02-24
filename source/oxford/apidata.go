@@ -9,6 +9,9 @@ import (
 
 const (
 	apiSearchResultMatchTypeInflection = "inflection"
+
+	// idTextSeparator defines the character used to separate words in ID texts
+	idTextSeparator = '_'
 )
 
 // apiDefinitionResponse defines the structure of an Oxford API define response
@@ -279,8 +282,27 @@ func (e *apiLexicalEntry) toEntry() source.DictionaryEntry {
 
 // toSense converts the API sense to a source.Sense
 func (s *apiSense) toSense() source.Sense {
+	definitions := s.Definitions
+
+	if len(definitions) < 1 {
+		definitions = append(definitions, s.CrossReferenceMarkers...)
+	}
+
+	categories := make([]string, 0, len(s.Domains)+len(s.Regions)+len(s.Registers))
 	examples := make([]source.AttributedText, 0, len(s.Examples))
 	notes := make([]string, 0, len(s.Notes))
+
+	for _, domain := range s.Domains {
+		categories = append(categories, cleanIDText(domain.Text))
+	}
+
+	for _, register := range s.Registers {
+		categories = append(categories, cleanIDText(register.Text))
+	}
+
+	for _, region := range s.Regions {
+		categories = append(categories, cleanIDText(region.Text))
+	}
 
 	for _, example := range s.Examples {
 		examples = append(examples, example.toAttributedText())
@@ -291,7 +313,8 @@ func (s *apiSense) toSense() source.Sense {
 	}
 
 	return source.Sense{
-		Definitions: s.Definitions,
+		Definitions: definitions,
+		Categories:  categories,
 		Examples:    examples,
 		Notes:       notes,
 	}
@@ -302,4 +325,8 @@ func (e *apiComplexExample) toAttributedText() source.AttributedText {
 	return source.AttributedText{
 		Text: e.Text,
 	}
+}
+
+func cleanIDText(text string) string {
+	return strings.ReplaceAll(text, string(idTextSeparator), " ")
 }
