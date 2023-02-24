@@ -18,7 +18,7 @@ Pre-compiled binaries are available on the [releases](https://github.com/Rican7/
 If you have a working Go environment, you can install via `go install`:
 
 ```shell
-go install github.com/Rican7/define
+go install github.com/Rican7/define@latest
 ```
 
 
