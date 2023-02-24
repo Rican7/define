@@ -69,6 +69,7 @@ type Pronunciation string
 // Sense defines the structure of a particular meaning of a word
 type Sense struct {
 	Definitions []string
+	Categories  []string
 	Examples    []AttributedText
 	Notes       []string
 
