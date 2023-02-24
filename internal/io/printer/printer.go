@@ -96,6 +96,11 @@ func printDictionaryEntry(writer *defineio.PanicWriter, entry source.DictionaryE
 				prefix = " - "
 			}
 
+			if len(sense.Categories) > 0 {
+				writer.WriteStringLine(prefix + fmt.Sprintf("(%s)", strings.Join(sense.Categories, " - ")))
+				prefix = strings.Repeat(" ", len(prefix))
+			}
+
 			writer.WriteStringLine(prefix + definition)
 		}
 
@@ -112,6 +117,11 @@ func printDictionaryEntry(writer *defineio.PanicWriter, entry source.DictionaryE
 		writer.IndentWrites(func(writer *defineio.PanicWriter) {
 			for _, subSense := range sense.SubSenses {
 				prefix := " - "
+
+				if len(subSense.Categories) > 0 {
+					writer.WriteStringLine(prefix + fmt.Sprintf("(%s)", strings.Join(subSense.Categories, " - ")))
+					prefix = strings.Repeat(" ", len(prefix))
+				}
 
 				for _, definition := range subSense.Definitions {
 					writer.WriteStringLine(prefix + definition)
