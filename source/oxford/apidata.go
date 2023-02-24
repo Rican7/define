@@ -187,14 +187,19 @@ type apiPronunciation struct {
 
 // toResults converts the API response to the results that a source expects to
 // return.
-func (r *apiDefinitionResponse) toResults() []source.DictionaryResult {
-	sourceResults := make([]source.DictionaryResult, 0, len(r.Results))
+func (r *apiDefinitionResponse) toResults() source.DictionaryResults {
+	sourceResults := make(source.DictionaryResults, 0, len(r.Results))
 
 	for _, result := range r.Results {
+		word := result.Word
 		sourceEntries := make([]source.DictionaryEntry, 0, len(result.LexicalEntries))
 
 		for _, lexicalEntry := range result.LexicalEntries {
 			sourceEntry := lexicalEntry.toEntry()
+
+			if word == "" {
+				word = sourceEntry.Word
+			}
 
 			sourceEntries = append(sourceEntries, sourceEntry)
 		}
@@ -203,6 +208,7 @@ func (r *apiDefinitionResponse) toResults() []source.DictionaryResult {
 			sourceResults,
 			source.DictionaryResult{
 				Language: result.Language,
+				Word:     word,
 				Entries:  sourceEntries,
 			},
 		)
@@ -213,9 +219,9 @@ func (r *apiDefinitionResponse) toResults() []source.DictionaryResult {
 
 // toResults converts the API response to the results that a source expects to
 // return.
-func (r *apiSearchResponse) toResults() []string {
+func (r *apiSearchResponse) toResults() source.SearchResults {
 	apiResults := r.Results
-	sourceResults := make([]string, 0, len(r.Results))
+	sourceResults := make(source.SearchResults, 0, len(r.Results))
 
 	// Sort the results by score
 	sort.Slice(
@@ -226,10 +232,9 @@ func (r *apiSearchResponse) toResults() []string {
 	)
 
 	for _, apiResult := range apiResults {
-		sourceResults = append(
-			sourceResults,
-			apiResult.Label,
-		)
+		sourceResult := source.SearchResult(apiResult.Label)
+
+		sourceResults = append(sourceResults, sourceResult)
 	}
 
 	return sourceResults

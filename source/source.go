@@ -16,22 +16,32 @@ type Source interface {
 
 	// Define takes a word string and returns a list of dictionary results, and
 	// an error if any occurred.
-	Define(word string) ([]DictionaryResult, error)
+	Define(word string) (DictionaryResults, error)
 }
 
 // Searcher defines an interface for a source that supports search capabilities
 type Searcher interface {
 	// Search takes a word string and returns a list of found words, and an
 	// error if any occurred.
-	Search(word string, limit uint) ([]string, error)
+	Search(word string, limit uint) (SearchResults, error)
 }
+
+// DictionaryResults defines the structure of a list of dictionary word results
+type DictionaryResults []DictionaryResult
+
+// SearchResults defines the structure of a list of word search results
+type SearchResults []SearchResult
 
 // DictionaryResult defines the structure of a dictionary word result in a
 // specific language
 type DictionaryResult struct {
 	Language string
+	Word     string
 	Entries  []DictionaryEntry
 }
+
+// SearchResult defines the structure of a word search result
+type SearchResult string
 
 // Entry defines the structure of an entry of a specific word
 type Entry struct {
@@ -84,6 +94,41 @@ type Attribution struct {
 type ThesaurusValues struct {
 	Synonyms []string // Words with similar meaning
 	Antonyms []string // Words with the opposite meaning
+}
+
+// IsSortedForPrimaryResult takes a word and returns true if the first result
+// is a direct match.
+func (r DictionaryResults) IsSortedForPrimaryResult(word string) bool {
+	return len(r) < 1 || r[0].Word == word
+}
+
+// SortForPrimaryResult takes a word and attempts to find any direct match
+// within the results. If any match is found, it moves that result to the
+// first position of the results (while retaining the other results).
+func (r *DictionaryResults) SortForPrimaryResult(word string) {
+	if r.IsSortedForPrimaryResult(word) {
+		// Short-circuit if we're already sorted
+		return
+	}
+
+	var matchIndex *int
+
+	for i, result := range *r {
+		if result.Word == word {
+			matchIndex = &i
+			break
+		}
+	}
+
+	// Make sure the matchIndex isn't 0, because then the results are already
+	// sorted (the match is already in the first position)
+	if matchIndex != nil && *matchIndex != 0 {
+		i := *matchIndex
+		match := (*r)[i]
+
+		// Sort the slice by placing the matched result at the first position
+		*r = append(DictionaryResults{match}, append((*r)[:i], (*r)[i+1:]...)...)
+	}
 }
 
 // String satisfies fmt.Stringer and dictates the string format of the value

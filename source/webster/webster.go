@@ -62,7 +62,7 @@ func (a *api) Name() string {
 
 // Define takes a word string and returns a list of dictionary results, and
 // an error if any occurred.
-func (a *api) Define(word string) ([]source.DictionaryResult, error) {
+func (a *api) Define(word string) (source.DictionaryResults, error) {
 	rawResponse, err := a.makeAPIRequest(word)
 
 	if err != nil {
@@ -86,7 +86,7 @@ func (a *api) Define(word string) ([]source.DictionaryResult, error) {
 
 // Search takes a word string and returns a list of found words, and an
 // error if any occurred.
-func (a *api) Search(word string, limit uint) ([]string, error) {
+func (a *api) Search(word string, limit uint) (source.SearchResults, error) {
 	rawResponse, err := a.makeAPIRequest(word)
 
 	if err != nil {

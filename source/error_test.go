@@ -18,13 +18,13 @@ var (
 func TestValidateDictionaryResults(t *testing.T) {
 	testData := []struct {
 		word   string
-		result []DictionaryResult
+		result DictionaryResults
 		want   error
 	}{
 		{word: "", result: nil, want: &EmptyResultError{}},
-		{word: "", result: []DictionaryResult{}, want: &EmptyResultError{}},
-		{word: "test", result: []DictionaryResult{}, want: &EmptyResultError{Word: "test"}},
-		{word: "test", result: []DictionaryResult{{Language: "test"}}, want: nil},
+		{word: "", result: DictionaryResults{}, want: &EmptyResultError{}},
+		{word: "test", result: DictionaryResults{}, want: &EmptyResultError{Word: "test"}},
+		{word: "test", result: DictionaryResults{{Language: "test"}}, want: nil},
 	}
 
 	for _, tt := range testData {
@@ -37,13 +37,13 @@ func TestValidateDictionaryResults(t *testing.T) {
 func TestValidateAndReturnDictionaryResults(t *testing.T) {
 	testData := []struct {
 		word    string
-		result  []DictionaryResult
+		result  DictionaryResults
 		wantErr bool
 	}{
 		{word: "", result: nil, wantErr: true},
-		{word: "", result: []DictionaryResult{}, wantErr: true},
-		{word: "test", result: []DictionaryResult{}, wantErr: true},
-		{word: "test", result: []DictionaryResult{{Language: "test"}}, wantErr: false},
+		{word: "", result: DictionaryResults{}, wantErr: true},
+		{word: "test", result: DictionaryResults{}, wantErr: true},
+		{word: "test", result: DictionaryResults{{Language: "test"}}, wantErr: false},
 	}
 
 	for _, tt := range testData {
@@ -62,13 +62,13 @@ func TestValidateAndReturnDictionaryResults(t *testing.T) {
 func TestValidateSearchResults(t *testing.T) {
 	testData := []struct {
 		word   string
-		result []string
+		result SearchResults
 		want   error
 	}{
 		{word: "", result: nil, want: &EmptyResultError{}},
-		{word: "", result: []string{}, want: &EmptyResultError{}},
-		{word: "test", result: []string{}, want: &EmptyResultError{Word: "test"}},
-		{word: "test", result: []string{"test"}, want: nil},
+		{word: "", result: SearchResults{}, want: &EmptyResultError{}},
+		{word: "test", result: SearchResults{}, want: &EmptyResultError{Word: "test"}},
+		{word: "test", result: SearchResults{"test"}, want: nil},
 	}
 
 	for _, tt := range testData {
@@ -81,13 +81,13 @@ func TestValidateSearchResults(t *testing.T) {
 func TestValidateAndReturnSearchResults(t *testing.T) {
 	testData := []struct {
 		word    string
-		result  []string
+		result  SearchResults
 		wantErr bool
 	}{
 		{word: "", result: nil, wantErr: true},
-		{word: "", result: []string{}, wantErr: true},
-		{word: "test", result: []string{}, wantErr: true},
-		{word: "test", result: []string{"test"}, wantErr: false},
+		{word: "", result: SearchResults{}, wantErr: true},
+		{word: "test", result: SearchResults{}, wantErr: true},
+		{word: "test", result: SearchResults{"test"}, wantErr: false},
 	}
 
 	for _, tt := range testData {
