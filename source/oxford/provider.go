@@ -64,7 +64,6 @@ func (c *config) UnmarshalJSON(data []byte) error {
 
 	// Unmarshal into our copy
 	err := json.Unmarshal(data, copy)
-
 	if err != nil {
 		return err
 	}

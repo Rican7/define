@@ -15,7 +15,6 @@ import (
 func RemoveDiacritics(text string) string {
 	transformer := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 	normalized, _, err := transform.String(transformer, text)
-
 	if err != nil {
 		return text
 	}

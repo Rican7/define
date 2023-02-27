@@ -64,7 +64,6 @@ func (a *api) Name() string {
 // an error if any occurred.
 func (a *api) Define(word string) (source.DictionaryResults, error) {
 	rawResponse, err := a.makeAPIRequest(word)
-
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +87,6 @@ func (a *api) Define(word string) (source.DictionaryResults, error) {
 // error if any occurred.
 func (a *api) Search(word string, limit uint) (source.SearchResults, error) {
 	rawResponse, err := a.makeAPIRequest(word)
-
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +122,6 @@ func (a *api) makeAPIRequest(word string) (apiRawResponse, error) {
 	}
 
 	httpRequest, err := http.NewRequest(http.MethodGet, apiURL.ResolveReference(requestURL).String(), nil)
-
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +129,6 @@ func (a *api) makeAPIRequest(word string) (apiRawResponse, error) {
 	httpRequest.Header.Set(httpRequestAcceptHeaderName, jsonMIMEType)
 
 	httpResponse, err := a.httpClient.Do(httpRequest)
-
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +140,6 @@ func (a *api) makeAPIRequest(word string) (apiRawResponse, error) {
 	}
 
 	body, err := io.ReadAll(httpResponse.Body)
-
 	if err != nil {
 		return nil, err
 	}

@@ -36,7 +36,6 @@ func (w *PanicWriter) Write(p []byte) (int, error) {
 // bytes that were written. It'll panic if any error occurs during writing.
 func (w *PanicWriter) WriteBytes(p []byte) int {
 	n, err := w.Write(p)
-
 	if err != nil {
 		panic(err)
 	}
