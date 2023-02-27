@@ -113,7 +113,6 @@ func Provide(conf Configuration) (source.Source, error) {
 	provider := providers[conf]
 
 	src, err := provider.Provide(conf)
-
 	if err != nil {
 		err = fmt.Errorf("source %q failed to initialize with error: %s", provider.Name(), err)
 	}

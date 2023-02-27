@@ -64,13 +64,11 @@ func (a *api) Name() string {
 func (a *api) Define(word string) (source.DictionaryResults, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(entriesURLString + "en/" + word)
-
 	if err != nil {
 		return nil, err
 	}
 
 	httpRequest, err := http.NewRequest(http.MethodGet, apiURL.ResolveReference(requestURL).String(), nil)
-
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +76,6 @@ func (a *api) Define(word string) (source.DictionaryResults, error) {
 	httpRequest.Header.Set(httpRequestAcceptHeaderName, jsonMIMEType)
 
 	httpResponse, err := a.httpClient.Do(httpRequest)
-
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +95,6 @@ func (a *api) Define(word string) (source.DictionaryResults, error) {
 	}
 
 	body, err := io.ReadAll(httpResponse.Body)
-
 	if err != nil {
 		return nil, err
 	}

@@ -50,7 +50,6 @@ func initializeFileConfig(fileLocation string) (Configuration, error) {
 	var conf Configuration
 
 	fileContents, err := os.ReadFile(tryExpandPath(fileLocation))
-
 	if err != nil {
 		return conf, err
 	}
@@ -118,7 +117,6 @@ func NewFromRuntime(
 	defaultConfigFileLocation string,
 	defaults Configuration,
 ) (Configuration, error) {
-
 	var conf Configuration
 	var err error
 

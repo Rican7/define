@@ -76,13 +76,11 @@ func (a *api) Name() string {
 func (a *api) Define(word string) (source.DictionaryResults, error) {
 	// Prepare our URL
 	requestURL, err := url.Parse(entriesURLString + "en-us/" + word)
-
 	if err != nil {
 		return nil, err
 	}
 
 	httpRequest, err := http.NewRequest(http.MethodGet, apiURL.ResolveReference(requestURL).String(), nil)
-
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +88,6 @@ func (a *api) Define(word string) (source.DictionaryResults, error) {
 	a.signRequest(httpRequest)
 
 	httpResponse, err := a.httpClient.Do(httpRequest)
-
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +119,6 @@ func (a *api) Define(word string) (source.DictionaryResults, error) {
 // error if any occurred.
 func (a *api) Search(word string, limit uint) (source.SearchResults, error) {
 	response, err := a.apiSearch(word, limit)
-
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +150,6 @@ func (a *api) apiSearch(word string, limit uint) (*apiSearchResponse, error) {
 	}
 
 	httpRequest, err := http.NewRequest(http.MethodGet, apiURL.ResolveReference(requestURL).String(), nil)
-
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +157,6 @@ func (a *api) apiSearch(word string, limit uint) (*apiSearchResponse, error) {
 	a.signRequest(httpRequest)
 
 	httpResponse, err := a.httpClient.Do(httpRequest)
-
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +182,6 @@ func (a *api) apiSearch(word string, limit uint) (*apiSearchResponse, error) {
 
 func (a *api) apiSearchFallback(word string) (source.DictionaryResults, error) {
 	response, err := a.apiSearch(word, fallbackSearchResultLimit)
-
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +231,6 @@ func validateResponse(word string, response *http.Response) error {
 
 func decodeResponseData(data io.Reader, into any) error {
 	body, err := io.ReadAll(data)
-
 	if err != nil {
 		return err
 	}

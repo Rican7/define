@@ -25,8 +25,7 @@ type EmptyResultError struct {
 }
 
 // AuthenticationError represents an error caused by an authentication problem
-type AuthenticationError struct {
-}
+type AuthenticationError struct{}
 
 // InvalidResponseError represents an error caused by an invalid response
 type InvalidResponseError struct {
