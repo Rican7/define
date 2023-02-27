@@ -60,7 +60,7 @@ build: install-deps
 	go build ${GO_BUILD_FLAGS}
 
 ${BUILD_DIR}: install-deps install-deps-dev
-	gox ${GOX_BUILD_FLAGS}
+	${GOBIN}/gox ${GOX_BUILD_FLAGS}
 	for file in ${BUILD_DIR}/* ; do sha256sum "$${file}" > "$${file}.sha256"; done
 
 build-release: ${BUILD_DIR}
@@ -94,7 +94,7 @@ test-with-coverage-profile:
 	go test -covermode ${GO_TEST_COVERAGE_MODE} -coverprofile ${GO_TEST_COVERAGE_FILE_NAME} ./...
 
 format-lint:
-	@errors=$$(gofumpt -l ${GOFUMPT_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Format lint failed on:\n$${errors}\n"; exit 1; fi
+	@errors=$$(${GOBIN}/gofumpt -l ${GOFUMPT_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Format lint failed on:\n$${errors}\n"; exit 1; fi
 
 style-lint: install-deps-dev
 	${GOBIN}/golint -min_confidence=${GOLINT_MIN_CONFIDENCE} -set_exit_status ./...
@@ -106,7 +106,7 @@ vet:
 	go vet ./...
 
 format-fix:
-	gofumpt -w ${GOFUMPT_FLAGS} .
+	${GOBIN}/gofumpt -w ${GOFUMPT_FLAGS} .
 
 fix: install-deps-dev format-fix
 	go fix ./...
