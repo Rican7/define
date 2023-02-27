@@ -32,8 +32,7 @@ XC_OSARCHS ?= !darwin/386 !darwin/arm
 GOX_BUILD_FLAGS ?= -verbose -ldflags="${GO_LD_FLAGS}" -arch="${XC_ARCHITECTURES}" -os="${XC_OPERATING_SYSTEMS}" -osarch="${XC_OSARCHS}" -output="${BUILD_DIR}/{{.Dir}}_{{.OS}}_{{.Arch}}"
 
 # Tool flags
-GOFMT_FLAGS ?= -s
-GOIMPORTS_FLAGS ?=
+GOFUMPT_FLAGS ?=
 GOLINT_MIN_CONFIDENCE ?= 0.3
 
 # Set the mode for code-coverage
@@ -75,8 +74,8 @@ install-deps:
 tools install-deps-dev: install-deps
 	cd tools && go install \
 		golang.org/x/lint/golint \
-		golang.org/x/tools/cmd/goimports \
 		honnef.co/go/tools/cmd/staticcheck \
+		mvdan.cc/gofumpt \
 		github.com/mitchellh/gox
 
 update-deps:
@@ -95,28 +94,22 @@ test-with-coverage-profile:
 	go test -covermode ${GO_TEST_COVERAGE_MODE} -coverprofile ${GO_TEST_COVERAGE_FILE_NAME} ./...
 
 format-lint:
-	@errors=$$(gofmt -l ${GOFMT_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Format lint failed on:\n$${errors}\n"; exit 1; fi
-
-import-lint: install-deps-dev
-	@errors=$$(${GOBIN}/goimports -l ${GOIMPORTS_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Import lint failed on:\n$${errors}\n"; exit 1; fi
+	@errors=$$(gofumpt -l ${GOFUMPT_FLAGS} .); if [ "$${errors}" != "" ]; then echo "Format lint failed on:\n$${errors}\n"; exit 1; fi
 
 style-lint: install-deps-dev
 	${GOBIN}/golint -min_confidence=${GOLINT_MIN_CONFIDENCE} -set_exit_status ./...
 	${GOBIN}/staticcheck ./...
 
-lint: install-deps-dev format-lint import-lint style-lint
+lint: install-deps-dev format-lint style-lint
 
 vet:
 	go vet ./...
 
 format-fix:
-	gofmt -w ${GOFMT_FLAGS} .
+	gofumpt -w ${GOFUMPT_FLAGS} .
 
-import-fix:
-	${GOBIN}/goimports -w ${GOIMPORTS_FLAGS} .
-
-fix: install-deps-dev format-fix import-fix
+fix: install-deps-dev format-fix
 	go fix ./...
 
 
-.PHONY: all clean clean-release build build-release install install-deps tools install-deps-dev update-deps test test-with-coverage format-lint import-lint style-lint lint vet format-fix import-fix fix
+.PHONY: all clean clean-release build build-release install install-deps tools install-deps-dev update-deps test test-with-coverage format-lint style-lint lint vet format-fix fix
