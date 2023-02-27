@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## vNext TODO
+
+### Features
+
+- Improved internal tooling for more strict linting
+
+### Bug fixes
+
+- Updated the install instructions in the README
+- Made some refactors to satisfy more strict linting
+
+
 ## 0.3.0
 
 ### Features
