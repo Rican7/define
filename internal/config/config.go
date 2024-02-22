@@ -15,7 +15,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	flag "github.com/ogier/pflag"
 
-	"github.com/imdario/mergo"
+	"dario.cat/mergo"
 )
 
 // Configuration defines the application's configuration structure
