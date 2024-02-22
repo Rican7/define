@@ -1,6 +1,6 @@
 module github.com/Rican7/define/tools
 
-go 1.20
+go 1.22.0
 
 require (
 	github.com/mitchellh/gox v1.0.1
