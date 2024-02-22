@@ -43,6 +43,7 @@ jobs:
 
     - name: Send code coverage to coveralls
       if: ${{ matrix.go == '1.22.x' }}
+      continue-on-error: true
       env:
         COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
