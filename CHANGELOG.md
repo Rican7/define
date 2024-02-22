@@ -5,6 +5,7 @@
 ### Features
 
 - Improved internal tooling for more strict linting
+- Updated dependencies
 
 ### Bug fixes
 
