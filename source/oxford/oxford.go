@@ -55,7 +55,6 @@ func init() {
 	var err error
 
 	apiURL, err = url.Parse(baseURLString)
-
 	if err != nil {
 		panic(err)
 	}

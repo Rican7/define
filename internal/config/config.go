@@ -15,7 +15,7 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 	flag "github.com/ogier/pflag"
 
-	"github.com/imdario/mergo"
+	"dario.cat/mergo"
 )
 
 // Configuration defines the application's configuration structure
@@ -145,7 +145,6 @@ func NewFromRuntime(
 		// If we have a config file to load
 		if configFileLocation != "" {
 			fileConfig, err = initializeFileConfig(configFileLocation)
-
 			if err != nil {
 				err = fmt.Errorf("error reading config file %q with error: %s", configFileLocation, err)
 			}
@@ -202,7 +201,6 @@ func (c *Configuration) UnmarshalJSON(data []byte) error {
 
 	// Unmarshal our base configuration
 	err = json.Unmarshal(data, (*conf)(c))
-
 	if err != nil {
 		return err
 	}
@@ -210,7 +208,6 @@ func (c *Configuration) UnmarshalJSON(data []byte) error {
 	configMap := make(map[string]*json.RawMessage)
 
 	err = json.Unmarshal(data, &configMap)
-
 	if err != nil {
 		return err
 	}
