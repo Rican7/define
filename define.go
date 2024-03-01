@@ -26,9 +26,8 @@ import (
 
 const (
 	// Configuration defaults
-	defaultConfigFileLocation = "~/.define.conf.json"
-	defaultIndentationSize    = 2
-	defaultPreferredSource    = oxford.JSONKey
+	defaultIndentationSize = 2
+	defaultPreferredSource = oxford.JSONKey
 
 	fallbackSearchResultLimit = 5
 )
@@ -67,7 +66,7 @@ func init() {
 		providerConfsList = append(providerConfsList, providerConf)
 	}
 
-	conf, err = config.NewFromRuntime(flags, providerConfs, defaultConfigFileLocation, config.Configuration{
+	conf, err = config.NewFromRuntime(flags, providerConfs, config.Configuration{
 		IndentationSize: defaultIndentationSize,
 		PreferredSource: defaultPreferredSource,
 	})
