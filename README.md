@@ -26,14 +26,26 @@ go install github.com/Rican7/define@latest
 
 The **define** app allows configuration through multiple means. You can either set configuration via:
 
-- Command line flags (good for one-off use)
-- A configuration file (good for your "dotfiles")
-- Environment variables (especially useful for API keys)
+1. Command line flags (good for one-off use)
+2. Environment variables (good for API keys)
+3. A configuration file (good for your "dotfiles")
+
+When multiple means of configuration are used, the values will take precedence in the aforementioned priority.
 
 
 ### Command line flags
 
 The list of command line flags is easily discovered via the `--help` flag. Any passed command line flag will take precedence over any other configuration mechanism.
+
+### Environment variables
+
+Some configuration values can also be specified via environment variables. This is especially useful for API keys of different sources.
+
+The following environment variables are read by **define**'s sources:
+
+- `MERRIAM_WEBSTER_DICTIONARY_APP_KEY`
+- `OXFORD_DICTIONARY_APP_ID`
+- `OXFORD_DICTIONARY_APP_KEY`
 
 ### Configuration file
 
@@ -49,16 +61,6 @@ To print the default values of the configuration, simply use the `--print-config
 ```shell
 define --print-config > ~/.define.conf.json
 ```
-
-### Environment variables
-
-Some configuration values can also be specified via environment variables. This is especially useful for API keys of different sources.
-
-The following environment variables are read by **define**'s sources:
-
-- `MERRIAM_WEBSTER_DICTIONARY_APP_KEY`
-- `OXFORD_DICTIONARY_APP_ID`
-- `OXFORD_DICTIONARY_APP_KEY`
 
 
 ## Sources
