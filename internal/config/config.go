@@ -97,8 +97,8 @@ func mergeConfigurations(confs ...Configuration) (Configuration, error) {
 //
 // The merging of values from different sources will take this priority:
 // 1. Command line arguments
-// 2. A loaded config file, if available
-// 3. Environment variables
+// 2. Environment variables
+// 3. A loaded config file, if available
 // 4. Passed in default values
 func NewFromRuntime(
 	flags *flag.FlagSet,

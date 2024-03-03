@@ -37,7 +37,12 @@ The list of command line flags is easily discovered via the `--help` flag. Any p
 
 ### Configuration file
 
-A configuration file can be stored at `~/.define.conf.json` and **define** will automatically load the values specified there.
+A configuration file can be stored that **define** will automatically load the values from.
+
+The path of the configuration file to load can be specified via the `--config-file` flag. If no config file path is specified, **define** will search for a config file in your OS's standard config directory paths. While these paths are OS-specific, there are two locations that are searched for that are shared among all platforms:
+
+1. `$XDG_CONFIG_HOME/define/config.json` (This is only searched for when the `$XDG_CONFIG_HOME` env variable is set)
+2. `~/.define.conf.json` (Where `~` is equal to your `$HOME` or user directory for your OS)
 
 To print the default values of the configuration, simply use the `--print-config` flag. This can also be used to initialize a configuration file, for example:
 
