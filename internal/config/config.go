@@ -119,6 +119,7 @@ func NewFromRuntime(
 	err = flags.Parse(os.Args[1:])
 
 	if err == nil && !commandLineConfig.noConfigFile {
+		// This path should have either the user-passed value or a found default
 		configFilePath := tryExpandUserPath(commandLineConfig.configFilePath)
 
 		// If we have a config file to load

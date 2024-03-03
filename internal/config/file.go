@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"github.com/adrg/xdg"
 )
 
 const (
@@ -15,8 +17,7 @@ const (
 )
 
 var (
-	userHomeDirPath   string
-	userConfigDirPath string
+	userHomeDirPath string
 )
 
 // userHomeDir returns the user's home directory, caching the value upon first
@@ -30,17 +31,6 @@ func userHomeDir() string {
 	return userHomeDirPath
 }
 
-// userConfigDir returns the user's config directory, caching the value upon
-// first calculation, and without worrying about errors about detection.
-func userConfigDir() string {
-	if userConfigDirPath == "" {
-		// Ignore errors here. We only need the value, even if it's empty.
-		userConfigDirPath, _ = os.UserConfigDir()
-	}
-
-	return userConfigDirPath
-}
-
 // tryExpandUserPath takes a path and expands it if it's user home prefixed (~).
 // If the path isn't user home prefixed, then the original path is returned.
 func tryExpandUserPath(path string) string {
@@ -51,37 +41,26 @@ func tryExpandUserPath(path string) string {
 	return path
 }
 
-// tryExpandConfigPath takes a path and expands it under the user's config home
-// path, and the app's config home path within. If those paths aren't known,
-// the path is returned empty.
-func tryExpandConfigPath(path string) string {
-	userConfPath := userConfigDir()
-
-	if userConfPath == "" {
-		// If we have no known config path for the user, then we don't have a
-		// path we can use.
-		return ""
-	}
-
-	return filepath.Join(userConfPath, xdgBaseName, path)
-}
-
 // findConfigFile attempts to find the current environment user's config file,
 // by scanning possible known locations. It returns the path to the config file,
 // if any was found.
 func findConfigFile() string {
-	searchFilePaths := []string{
-		tryExpandConfigPath(defaultXDGConfigFileName),
-		tryExpandUserPath(oldDefaultConfigFilePath),
+	defaultXDGConfigRelPath := filepath.Join(xdgBaseName, defaultXDGConfigFileName)
+
+	filePath, err := xdg.SearchConfigFile(defaultXDGConfigRelPath)
+	if filePath != "" && err == nil {
+		// We found a config! Return it's path.
+		return filePath
 	}
 
-	for _, filePath := range searchFilePaths {
-		// Check if the file exists
-		if _, err := os.Stat(filePath); !errors.Is(err, fs.ErrNotExist) {
-			// Return the first file that exists
-			// (if there are problems reading the file, we'll handle later)
-			return filePath
-		}
+	oldDefaultConfigFullPath := tryExpandUserPath(oldDefaultConfigFilePath)
+
+	// Check if a file exists at the old default path
+	_, err = os.Stat(oldDefaultConfigFullPath)
+	if err == nil || errors.Is(err, fs.ErrExist) {
+		// Return the file path if it exists
+		// (if there are problems reading the file, we'll handle later)
+		return oldDefaultConfigFullPath
 	}
 
 	return ""
