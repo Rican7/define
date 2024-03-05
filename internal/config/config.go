@@ -5,6 +5,7 @@
 package config
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -63,7 +64,9 @@ func initializeEnvironmentConfig() Configuration {
 func initializeFileConfig(filePath string) (Configuration, error) {
 	var conf Configuration
 
-	fileContents, err := os.ReadFile(tryExpandUserPath(filePath))
+	filePath = tryExpandUserPath(filePath)
+
+	fileContents, err := os.ReadFile(filePath)
 	if err != nil {
 		return conf, err
 	}
@@ -71,6 +74,8 @@ func initializeFileConfig(filePath string) (Configuration, error) {
 	if len(fileContents) > 0 {
 		err = json.Unmarshal(fileContents, &conf)
 	}
+
+	conf.configFilePath = filePath
 
 	return conf, err
 }
@@ -85,6 +90,10 @@ func mergeConfigurations(confs ...Configuration) (Configuration, error) {
 		if err := mergo.Merge(&merged, conf); err != nil {
 			return merged, err
 		}
+
+		// Set private (unexported values), as mergo can't handle those.
+		merged.configFilePath = cmp.Or(merged.configFilePath, conf.configFilePath)
+		merged.noConfigFile = cmp.Or(merged.noConfigFile, conf.noConfigFile)
 	}
 
 	return merged, nil
@@ -154,6 +163,11 @@ func (c Configuration) ProviderConfigs() []registry.Configuration {
 	}
 
 	return list
+}
+
+// FilePath returns the path of the file that was loaded for the configuration.
+func (c Configuration) FilePath() string {
+	return c.configFilePath
 }
 
 // MarshalJSON defines how the configuration should be JSON marshalled.
