@@ -56,6 +56,8 @@ The path of the configuration file to load can be specified via the `--config-fi
 1. `$XDG_CONFIG_HOME/define/config.json` (This is only searched for when the `$XDG_CONFIG_HOME` env variable is set)
 2. `~/.define.conf.json` (Where `~` is equal to your `$HOME` or user directory for your OS)
 
+To see which config file has been loaded, and to check what paths are searched for config files, use the `--debug-config` flag.
+
 To print the default values of the configuration, simply use the `--print-config` flag. This can also be used to initialize a configuration file, for example:
 
 ```shell
