@@ -12,6 +12,7 @@ import (
 const (
 	DefineWord Type = iota
 	PrintConfig
+	DebugConfig
 	ListSources
 	PrintVersion
 )
@@ -24,6 +25,7 @@ type Action struct {
 	flagSet *flag.FlagSet
 	flag    struct {
 		printConfig  bool
+		debugConfig  bool
 		listSources  bool
 		printVersion bool
 	}
@@ -38,6 +40,7 @@ func Setup(flags *flag.FlagSet) *Action {
 
 	// Define our flags
 	flags.BoolVar(&act.flag.printConfig, "print-config", false, "To print the current configuration")
+	flags.BoolVar(&act.flag.debugConfig, "debug-config", false, "To print debug info about the configuration")
 	flags.BoolVar(&act.flag.listSources, "list-sources", false, "To print the available sources")
 	flags.BoolVar(&act.flag.printVersion, "version", false, "To print the app's version info")
 
@@ -61,6 +64,8 @@ func (a *Action) Type() Type {
 	switch {
 	case a.flag.printConfig:
 		return PrintConfig
+	case a.flag.debugConfig:
+		return DebugConfig
 	case a.flag.listSources:
 		return ListSources
 	case a.flag.printVersion:
