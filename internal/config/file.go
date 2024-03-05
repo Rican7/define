@@ -45,23 +45,42 @@ func tryExpandUserPath(path string) string {
 // by scanning possible known locations. It returns the path to the config file,
 // if any was found.
 func findConfigFile() string {
-	defaultXDGConfigRelPath := filepath.Join(xdgBaseName, defaultXDGConfigFileName)
-
-	filePath, err := xdg.SearchConfigFile(defaultXDGConfigRelPath)
-	if filePath != "" && err == nil {
-		// We found a config! Return it's path.
-		return filePath
-	}
-
-	oldDefaultConfigFullPath := tryExpandUserPath(oldDefaultConfigFilePath)
-
-	// Check if a file exists at the old default path
-	_, err = os.Stat(oldDefaultConfigFullPath)
-	if err == nil || errors.Is(err, fs.ErrExist) {
-		// Return the file path if it exists
-		// (if there are problems reading the file, we'll handle later)
-		return oldDefaultConfigFullPath
+	for _, filePath := range FilePaths() {
+		// Check if the file exists
+		_, err := os.Stat(filePath)
+		if err == nil || errors.Is(err, fs.ErrExist) {
+			// Return the file path if it exists
+			// (if there are problems reading the file, we'll handle later)
+			return filePath
+		}
 	}
 
 	return ""
+}
+
+// FilePaths returns the paths of config files that may be searched for in the
+// current environment.
+//
+// This is useful for self-documentation, to provide clarity to users for where
+// their config file may be loaded from.
+func FilePaths() []string {
+	// Length of filePaths is the XDG config home, plus config home, plus the
+	// old default file path.
+	filePathsLen := len(xdg.ConfigDirs) + 2
+	filePaths := make([]string, 0, filePathsLen)
+
+	defaultXDGConfigRelPath := filepath.Join(xdgBaseName, defaultXDGConfigFileName)
+
+	// First we try the user's XDG config home
+	filePaths = append(filePaths, filepath.Join(xdg.ConfigHome, defaultXDGConfigRelPath))
+
+	// Then we fall back to the old default path
+	filePaths = append(filePaths, tryExpandUserPath(oldDefaultConfigFilePath))
+
+	// Finally, we defer to the XDG config dirs (as those are likely global)
+	for _, configDir := range xdg.ConfigDirs {
+		filePaths = append(filePaths, filepath.Join(configDir, defaultXDGConfigRelPath))
+	}
+
+	return filePaths
 }
