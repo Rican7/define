@@ -6,6 +6,14 @@
 
 - Improved internal tooling for more strict linting
 - Updated dependencies
+- Added support for loading config files in multiple locations, based on the OS/environment
+- Added support for the [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html) for config locations in *nix/Unix-like environments
+- Tweaked configuration fallback-order/precedence to use the more common ordering of:
+    1. Command line flags
+    2. Environment variables
+    3. A configuration file
+    4. Default values
+- Added a `--debug-config` flag to print config file loading status and the paths that are searched for config files
 
 ### Bug fixes
 
