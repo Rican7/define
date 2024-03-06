@@ -16,9 +16,7 @@ const (
 	oldDefaultConfigFilePath = "~/.define.conf.json"
 )
 
-var (
-	userHomeDirPath string
-)
+var userHomeDirPath string
 
 // userHomeDir returns the user's home directory, caching the value upon first
 // calculation, and without worrying about errors about detection.
