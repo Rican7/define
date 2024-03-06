@@ -26,9 +26,8 @@ import (
 
 const (
 	// Configuration defaults
-	defaultConfigFileLocation = "~/.define.conf.json"
-	defaultIndentationSize    = 2
-	defaultPreferredSource    = oxford.JSONKey
+	defaultIndentationSize = 2
+	defaultPreferredSource = oxford.JSONKey
 
 	fallbackSearchResultLimit = 5
 )
@@ -67,7 +66,7 @@ func init() {
 		providerConfsList = append(providerConfsList, providerConf)
 	}
 
-	conf, err = config.NewFromRuntime(flags, providerConfs, defaultConfigFileLocation, config.Configuration{
+	conf, err = config.NewFromRuntime(flags, providerConfs, config.Configuration{
 		IndentationSize: defaultIndentationSize,
 		PreferredSource: defaultPreferredSource,
 	})
@@ -149,6 +148,27 @@ func printConfig() {
 	handleError(err)
 
 	stdOutWriter.WriteStringLine(string(encoded))
+}
+
+func printConfigDebug() {
+	stdOutWriter.IndentWrites(func(writer *defineio.PanicWriter) {
+		writer.WriteNewLine()
+
+		switch configFilePath := conf.FilePath(); configFilePath {
+		case "":
+			writer.WriteStringLine("No config file was loaded.")
+		default:
+			writer.WriteStringLine(fmt.Sprintf("A config file was loaded from %q", configFilePath))
+		}
+
+		writer.WritePaddedStringLine("The following locations are searched for config files (in this order):", 1)
+
+		for i, filePath := range config.FilePaths() {
+			writer.WriteStringLine(fmt.Sprintf("%d. %s", i+1, filePath))
+		}
+
+		writer.WriteNewLine()
+	})
 }
 
 func printSources() {
@@ -238,6 +258,8 @@ func main() {
 	switch act.Type() {
 	case action.PrintConfig:
 		printConfig()
+	case action.DebugConfig:
+		printConfigDebug()
 	case action.ListSources:
 		printSources()
 	case action.PrintVersion:
