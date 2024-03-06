@@ -95,6 +95,8 @@ func (a *api) Define(word string) (source.DictionaryResults, error) {
 
 	if err = validateResponse(word, httpResponse); err != nil {
 		if _, isEmptyResult := err.(*source.EmptyResultError); isEmptyResult {
+			// Empty (404) result
+			// Try and automatically fallback
 			return a.apiSearchFallback(word)
 		}
 
@@ -108,6 +110,8 @@ func (a *api) Define(word string) (source.DictionaryResults, error) {
 	}
 
 	if len(response.Results) < 1 {
+		// Valid (200), but empty result
+		// Try and automatically fallback
 		return a.apiSearchFallback(word)
 	}
 
@@ -199,8 +203,8 @@ func (a *api) apiSearchFallback(word string) (source.DictionaryResults, error) {
 		}
 	}
 
-	if strings.EqualFold(word, fallbackWord) {
-		// Prevent matching against the same word
+	if fallbackWord == "" || strings.EqualFold(word, fallbackWord) {
+		// Prevent searching for empty or the same word
 		return nil, &source.EmptyResultError{Word: word}
 	}
 
