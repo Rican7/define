@@ -19,6 +19,7 @@
 
 - Updated the install instructions in the README
 - Made some refactors to satisfy more strict linting
+- Fixed the automatic inflection correction fallback searching in the Oxford source to prevent searching for no word (an empty query, which causes an invalid request error)
 
 
 ## 0.3.0
